@@ -20,13 +20,10 @@ export default function LoginPage() {
           <span className={styles.brandLabel}>CreatorMonk Studio</span>
         </div>
 
-        {/* Monk image with sun aura — centered, pushed up */}
+        {/* Monk image with sun aura */}
         <div className={styles.illustrationWrap}>
-          {/* Sun rays ring */}
           <div className={styles.sunRing} />
-          {/* Outer glow */}
           <div className={styles.sunGlow} />
-          {/* Inner halo */}
           <div className={styles.sunHalo} />
           <Image
             src="/login-img2.png"
@@ -35,10 +32,12 @@ export default function LoginPage() {
             height={420}
             className={styles.illustration}
             priority
+            // Next.js will emit a <link rel="preload"> for this image automatically
+            // because priority=true — so it loads before JS hydration finishes
           />
         </div>
 
-        {/* Hero copy — below the image */}
+        {/* Hero copy */}
         <div className={styles.heroCopy}>
           <h1 className={styles.heroHeading}>
             Where brands get their<br />

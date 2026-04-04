@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
-  
+
   // Tells Vercel not to bundle these heavy backend binaries
   serverExternalPackages: [
     '@prisma/client',
@@ -11,14 +11,28 @@ const nextConfig = {
     'ws',
   ],
 
-  // Whitelists your AWS S3 Bucket so Next.js allows the images to load
   images: {
     remotePatterns: [
+      // AWS S3 bucket
       {
         protocol: 'https',
         hostname: 'creatormonk-assets-prod.s3.ap-south-1.amazonaws.com',
         port: '',
-        pathname: '/**', // Allows any file inside the bucket
+        pathname: '/**',
+      },
+      // Production domain — needed for Next.js image optimisation on Vercel
+      {
+        protocol: 'https',
+        hostname: 'studio.creatormonk.in',
+        port: '',
+        pathname: '/**',
+      },
+      // Local dev
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/**',
       },
     ],
   },

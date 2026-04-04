@@ -1,13 +1,39 @@
 // src/app/(auth)/login/LoginForm.js
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import styles from "./login.module.css";
 
-export default function LoginForm() {
+/* ── Shimmer skeleton shown while JS hydrates / fonts load ── */
+function LoginSkeleton() {
+  return (
+    <div className={styles.skeletonCard}>
+      <div className={styles.skeletonLogo} />
+      <div className={styles.skeletonHeading} />
+      <div className={styles.skeletonSub} />
+
+      {/* email field */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
+        <div className={styles.skeletonLabel} />
+        <div className={styles.skeletonInput} />
+      </div>
+
+      {/* password field */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.38rem" }}>
+        <div className={styles.skeletonLabel} />
+        <div className={styles.skeletonInput} />
+      </div>
+
+      <div className={styles.skeletonBtn} />
+    </div>
+  );
+}
+
+/* ── Actual form (only renders after hydration) ── */
+function LoginFormInner() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +95,7 @@ export default function LoginForm() {
             className={styles.input}
             required
             disabled={isLoading}
+            autoComplete="email"
           />
         </div>
 
@@ -84,6 +111,7 @@ export default function LoginForm() {
               className={`${styles.input} ${styles.passwordInput}`}
               required
               disabled={isLoading}
+              autoComplete="current-password"
             />
             <button
               type="button"
@@ -121,5 +149,14 @@ export default function LoginForm() {
         © {new Date().getFullYear()} CreatorMonk. All rights reserved.
       </p>
     </div>
+  );
+}
+
+/* ── Default export wraps the form in Suspense ── */
+export default function LoginForm() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginFormInner />
+    </Suspense>
   );
 }

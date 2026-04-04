@@ -15,7 +15,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { getActionablePostCount } from "./actions"; 
+import { getActionablePostCount } from "./actions";
 import styles from "./Sidebar.module.css";
 
 const menuItems = [
@@ -33,14 +33,13 @@ export default function Sidebar() {
 
   const closeMobile = () => setMobileOpen(false);
 
-  // Fetch the notification count whenever the path changes
   useEffect(() => {
     const fetchCount = async () => {
       const count = await getActionablePostCount();
       setActionCount(count);
     };
     fetchCount();
-  }, [pathname]); // Triggers on navigation to keep the badge fresh
+  }, [pathname]);
 
   return (
     <>
@@ -48,7 +47,7 @@ export default function Sidebar() {
       <div className={styles.mobileBar}>
         <div className={styles.mobileLogo}>
           <Image
-            src="/logo1.jpg"
+            src="/logo1.png"
             alt="CreatorMonk"
             width={120}
             height={34}
@@ -62,7 +61,6 @@ export default function Sidebar() {
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-          {/* Mobile toggle dot if there are alerts */}
           {actionCount > 0 && !mobileOpen && <span className={styles.mobileToggleDot} />}
         </button>
       </div>
@@ -82,7 +80,7 @@ export default function Sidebar() {
             <div className={styles.logoIcon}>CM</div>
           ) : (
             <Image
-              src="/logo1.jpg"
+              src="/logo1.png"        {/* ← was logo1.jpg */}
               alt="CreatorMonk"
               width={130}
               height={36}
@@ -120,15 +118,13 @@ export default function Sidebar() {
               >
                 <span className={styles.navIcon}>
                   <Icon size={17} strokeWidth={1.75} />
-                  {/* Collapsed Alert Dot */}
                   {showAlert && collapsed && <span className={styles.collapsedAlertDot} />}
                 </span>
-                
+
                 {!collapsed && (
                   <span className={styles.navName}>{item.name}</span>
                 )}
-                
-                {/* Expanded Number Badge */}
+
                 {showAlert && !collapsed && (
                   <span className={styles.alertBadge}>{actionCount}</span>
                 )}
