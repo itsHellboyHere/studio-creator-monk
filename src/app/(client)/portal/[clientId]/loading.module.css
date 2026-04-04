@@ -1,0 +1,203 @@
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Bone — warm cream shimmer to match portal palette */
+.bone {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #f0ece4 0%,
+    #e8e2d8 45%,
+    #f0ece4 90%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* ── Shell ── */
+.shell {
+  min-height: 100vh;
+  background: #faf9f6;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Nav ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid #e8e4dd;
+  animation: fadeUp 0.2s ease both;
+}
+
+.navInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.navLogo {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  flex-shrink: 0;
+}
+
+.navMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.navName { width: 90px; height: 10px; }
+.navSub  { width: 60px; height: 8px; }
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navLink { height: 28px; border-radius: 8px; }
+
+.navPill {
+  width: 110px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+/* ── Main ── */
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 3rem 2rem 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+/* ── Hero ── */
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem 0 0.5rem;
+  flex-wrap: wrap;
+  animation: fadeUp 0.3s ease both;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.eyebrow   { width: 80px;  height: 9px; }
+.heroTitle  { width: 320px; height: 48px; border-radius: 8px; }
+.heroTitle2 { width: 200px; height: 48px; border-radius: 8px; }
+.heroDesc   { width: 280px; height: 12px; margin-top: 0.25rem; }
+
+.statsBlock {
+  width: 320px;
+  height: 88px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Section ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  animation: fadeUp 0.4s ease both;
+  animation-delay: 0.1s;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e8e4dd;
+}
+
+.headLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sectionTitle { width: 180px; height: 32px; border-radius: 8px; }
+.sectionSub   { width: 240px; height: 10px; }
+
+/* ── Card Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e8e4dd;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeUp 0.4s ease both;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardThumb  { width: 38px; height: 38px; border-radius: 8px; }
+.cardTag    { width: 70px;  height: 20px; border-radius: 5px; }
+.cardTitle  { width: 100%;  height: 14px; }
+.cardCaption { width: 90%;  height: 11px; }
+.cardCaption2 { width: 70%; height: 11px; }
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.cardStatus { width: 80px; height: 20px; border-radius: 5px; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .navLinks { display: none; }
+  .navPill  { display: none; }
+  .main { padding: 1.5rem 1rem 5rem; gap: 3.5rem; }
+  .hero { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
+  .statsBlock { width: 100%; height: 72px; }
+  .heroTitle  { width: 220px; }
+  .heroTitle2 { width: 150px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}
