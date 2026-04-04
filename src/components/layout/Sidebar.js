@@ -80,7 +80,7 @@ export default function Sidebar() {
             <div className={styles.logoIcon}>CM</div>
           ) : (
             <Image
-              src="/logo1.png"        {/* ← was logo1.jpg */}
+              src="/logo1.png"
               alt="CreatorMonk"
               width={130}
               height={36}
