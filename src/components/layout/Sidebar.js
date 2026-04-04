@@ -19,98 +19,70 @@ import { getActionablePostCount } from "./actions";
 import styles from "./Sidebar.module.css";
 
 const menuItems = [
-  { name: "Overview",    path: "/dashboard",   icon: LayoutDashboard },
-  { name: "Team Pods",   path: "/team",        icon: Users },
-  { name: "Client List", path: "/clients",     icon: Building2 },
-  { name: "Onboarding",  path: "/onboarding",  icon: Rocket },
+  { name: "Overview",    path: "/dashboard",  icon: LayoutDashboard },
+  { name: "Team Pods",   path: "/team",       icon: Users },
+  { name: "Client List", path: "/clients",    icon: Building2 },
+  { name: "Onboarding",  path: "/onboarding", icon: Rocket },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed]   = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [actionCount, setActionCount] = useState(0);
 
   const closeMobile = () => setMobileOpen(false);
 
-  useEffect(() => {
-    closeMobile();
-  }, [pathname]);
+  useEffect(() => { closeMobile(); }, [pathname]);
 
   useEffect(() => {
-    const fetchCount = async () => {
-      const count = await getActionablePostCount();
-      setActionCount(count);
-    };
-    fetchCount();
+    getActionablePostCount().then(setActionCount);
   }, [pathname]);
 
   return (
     <>
       {/* ── Mobile top bar ── */}
       <div className={styles.mobileBar}>
-        <div className={styles.mobileLogo}>
-          <Image
-            src="/logo1.png"
-            alt="CreatorMonk"
-            width={160}
-            height={80}
-            style={{ objectFit: "contain", objectPosition: "left" }}
-            priority
-          />
-        </div>
-        <button
-          className={styles.mobileToggle}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
+        <Image src="/logo1.png" alt="CreatorMonk" width={140} height={70}
+          style={{ objectFit: "contain", objectPosition: "left" }} priority />
+        <button className={styles.burgerBtn} onClick={() => setMobileOpen(o => !o)} aria-label="Toggle menu">
           {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          {actionCount > 0 && !mobileOpen && <span className={styles.mobileToggleDot} />}
+          {actionCount > 0 && !mobileOpen && <span className={styles.burgerDot} />}
         </button>
       </div>
 
-      {/* ── Mobile overlay ── */}
-      {mobileOpen && (
-        <div className={styles.overlay} onClick={closeMobile} />
-      )}
+      {/* Mobile overlay */}
+      {mobileOpen && <div className={styles.overlay} onClick={closeMobile} />}
 
       {/* ── Sidebar ── */}
-      <aside
-        className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""} ${mobileOpen ? styles.mobileVisible : ""}`}
-      >
-        {/* Logo — hidden on mobile (top bar already has it) */}
-        <div className={styles.logoSection}>
-          {collapsed ? (
-            <div className={styles.logoIcon}>CM</div>
-          ) : (
-            <Image
-              src="/logo1.png"
-              alt="CreatorMonk"
-              width={160}
-              height={80}
-              style={{ objectFit: "contain", objectPosition: "left", maxWidth: "100%" }}
-              priority
-            />
-          )}
+      <aside className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""} ${mobileOpen ? styles.mobileVisible : ""}`}>
+
+        {/* Logo */}
+        <div className={styles.logoWrap}>
+          {collapsed
+            ? <div className={styles.logoMark}>CM</div>
+            : <Image src="/logo1.png" alt="CreatorMonk" width={148} height={70}
+                style={{ objectFit: "contain", objectPosition: "left", maxWidth: "100%" }} priority />
+          }
         </div>
 
-        {/* Collapse toggle — desktop only */}
+        {/* Desktop collapse toggle — always visible */}
         <button
           className={styles.collapseBtn}
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => setCollapsed(c => !c)}
           aria-label="Toggle sidebar"
         >
-          {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+          {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
         </button>
 
         {/* Nav */}
         <nav className={styles.nav}>
           {!collapsed && <span className={styles.navLabel}>Menu</span>}
+
           {menuItems.map((item) => {
-            const Icon     = item.icon;
+            const Icon = item.icon;
             const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
-            const isClientList = item.name === "Client List";
-            const showAlert = isClientList && actionCount > 0;
+            const showAlert = item.name === "Client List" && actionCount > 0;
 
             return (
               <Link
@@ -120,20 +92,12 @@ export default function Sidebar() {
                 onClick={closeMobile}
                 title={collapsed ? item.name : undefined}
               >
-                <span className={styles.navIcon}>
-                  <Icon size={17} strokeWidth={1.75} />
-                  {showAlert && collapsed && <span className={styles.collapsedAlertDot} />}
+                <span className={styles.iconWrap}>
+                  <Icon size={17} strokeWidth={1.8} />
+                  {showAlert && collapsed && <span className={styles.iconDot} />}
                 </span>
-
-                {!collapsed && (
-                  <span className={styles.navName}>{item.name}</span>
-                )}
-
-                {showAlert && !collapsed && (
-                  <span className={styles.alertBadge}>{actionCount}</span>
-                )}
-
-                {isActive && !collapsed && !showAlert && <span className={styles.activeDot} />}
+                {!collapsed && <span className={styles.navName}>{item.name}</span>}
+                {showAlert && !collapsed && <span className={styles.badge}>{actionCount}</span>}
               </Link>
             );
           })}
@@ -141,18 +105,17 @@ export default function Sidebar() {
 
         {/* Footer */}
         <div className={styles.footer}>
-          {!collapsed && (
-            <div className={styles.footerUser}>
-              <div className={styles.userAvatar}>A</div>
-              <span className={styles.userLabel}>Admin</span>
-            </div>
-          )}
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className={styles.logoutBtn}
-            title="Sign out"
-          >
-            <LogOut size={15} strokeWidth={1.75} />
+          <div className={`${styles.userRow} ${collapsed ? styles.userRowCollapsed : ""}`}>
+            <div className={styles.avatar}>A</div>
+            {!collapsed && (
+              <div className={styles.userText}>
+                <span className={styles.userName}>Admin</span>
+                <span className={styles.userRole}>Administrator</span>
+              </div>
+            )}
+          </div>
+          <button onClick={() => signOut({ callbackUrl: "/login" })} className={styles.logoutBtn} title="Sign out">
+            <LogOut size={14} strokeWidth={1.8} />
             {!collapsed && <span>Sign Out</span>}
           </button>
         </div>

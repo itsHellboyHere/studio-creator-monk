@@ -1,3 +1,5 @@
+/* layout.module.css */
+
 .layoutWrapper {
   display: flex;
   min-height: 100vh;
@@ -5,14 +7,19 @@
 
 .mainContent {
   flex: 1;
-  /* ❌ Remove margin-left: 260px; */
-  min-width: 0; /* ✅ Add this so flex items don't overflow */
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;      /* children scroll independently */
   padding: 2.5rem;
-  background-color: var(--bg-body);
+  background-color: var(--bg-body, #f9fafb);
 }
 
 @media (max-width: 768px) {
   .layoutWrapper { flex-direction: column; }
-  /* Padding adjustment for mobile (accounting for the 52px top mobile bar) */
-  .mainContent { padding: 5rem 1.5rem 1.5rem; } 
+  .mainContent {
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: unset;
+    padding: calc(56px + 1.5rem) 1.25rem 2rem;
+  }
 }
