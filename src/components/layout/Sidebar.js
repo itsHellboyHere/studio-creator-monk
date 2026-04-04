@@ -33,7 +33,6 @@ export default function Sidebar() {
 
   const closeMobile = () => setMobileOpen(false);
 
-  // Auto-close drawer on route change
   useEffect(() => {
     closeMobile();
   }, [pathname]);
@@ -79,7 +78,7 @@ export default function Sidebar() {
       <aside
         className={`${styles.sidebar} ${collapsed ? styles.collapsed : ""} ${mobileOpen ? styles.mobileVisible : ""}`}
       >
-        {/* Logo */}
+        {/* Logo — hidden on mobile (top bar already has it) */}
         <div className={styles.logoSection}>
           {collapsed ? (
             <div className={styles.logoIcon}>CM</div>
