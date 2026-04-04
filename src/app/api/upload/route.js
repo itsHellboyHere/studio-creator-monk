@@ -4,17 +4,17 @@ import { generatePresignedUrl } from "@/lib/s3";
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { fileName, fileType } = body;
+    const { fileName, fileType , clientId} = body;
 
-    if (!fileName || !fileType) {
+    if (!fileName || !fileType || !clientId) {
       return NextResponse.json(
-        { error: "Missing fileName or fileType" }, 
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
     // Get the temporary upload URL and the permanent file URL
-    const { signedUrl, fileUrl } = await generatePresignedUrl(fileName, fileType);
+    const { signedUrl, fileUrl } = await generatePresignedUrl(fileName, fileType,clientId);
 
     return NextResponse.json({ signedUrl, fileUrl });
     

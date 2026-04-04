@@ -10,11 +10,11 @@ const s3Client = new S3Client({
   },
 });
 
-export async function generatePresignedUrl(fileName, fileType) {
+export async function generatePresignedUrl(fileName, fileType,clientId) {
   // 2. Clean the file name and make it unique so we don't overwrite existing files
   const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-  const uniqueFileName = `${Date.now()}-${cleanFileName}`;
-
+  // const uniqueFileName = `${Date.now()}-${cleanFileName}`;
+const uniqueFileName = `clients/${clientId}/posts/${Date.now()}-${cleanFileName}`;
   // 3. Create the command telling AWS we want to put an object in the bucket
   const command = new PutObjectCommand({
     Bucket: process.env.AWS_BUCKET_NAME,

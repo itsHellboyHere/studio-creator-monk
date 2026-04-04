@@ -88,6 +88,7 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
           body: JSON.stringify({
             fileName: selectedFile.name,
             fileType: selectedFile.type,
+            clientId: clientId,
           }),
         });
         
