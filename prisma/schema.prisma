@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+    url= env("DATABASE_URL")
+}
+
+// --- ENUMS ---
+enum Role {
+  ADMIN
+  TEAM
+  CLIENT
+}
+
+enum PostStatus {
+  DRAFT               
+  PENDING_REVIEW      
+  CHANGES_REQUESTED   
+  APPROVED            
+}
+
+enum PlatformType {
+  FACEBOOK
+  INSTAGRAM
+  YOUTUBE
+  LINKEDIN
+  TWITTER_X
+  OTHER
+}
+
+enum ContentType {
+  REEL
+  POST
+  STORY
+  VIDEO_LONG
+}
+
+// --- MODELS (TABLES) ---
+
+// 1. AGENCY GLOBAL STATS (Image 12: "Agency Overview Stats")
+// We use a single record here to power the top dashboard
+model AgencyOverview {
+  id                 String   @id @default("global_stats") // Forces a single record
+  
+  brandRelationships String   // e.g., "80+"
+  brandRelNote       String?  // e.g., "mix of local growth brands..."
+  
+  completedMandates  Int      // e.g., 56
+  completedManNote   String?  
+  
+  ongoingWorkstreams Int      // e.g., 35
+  ongoingWorkNote    String?  
+  
+  agencyStrength     Int      // e.g., 14
+  agencyStrNote      String?  
+  
+  updatedAt          DateTime @updatedAt
+}
+
+// 2. CLIENT MANAGEMENT
+model Client {
+  id               String   @id @default(cuid())
+  name             String   
+  
+  // Financial & Timing 
+  packageAmount    Float?    
+  startDate        DateTime? 
+
+  // Branding Identity
+  brandIcon        String?   
+  logoUrl          String?   
+  brandDescription String? 
+
+  // Social Links 
+  websiteUrl       String?
+  instagramUrl     String?   
+  facebookUrl      String?
+  youtubeUrl       String?   
+  linkedinUrl      String?
+  twitterXUrl      String?   
+  whatsappNumber   String?   
+  otherSocialUrl   String?   
+  
+  users            User[]   
+  posts            Post[]   
+  quotas           ClientMonthlyQuota[] 
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt 
+}
+
+// 3. MONTHLY QUOTAS (Image 15 & 16: "Edit Client Plan")
+model ClientMonthlyQuota {
+  id          String       @id @default(cuid())
+  clientId    String
+  client      Client       @relation(fields: [clientId], references: [id])
+
+  platform    PlatformType // FACEBOOK, INSTAGRAM
+  contentType ContentType  // STORY, POST, REEL
+  amount      Int          // Number per month (e.g., 12)
+
+  @@unique([clientId, platform, contentType]) 
+}
+
+// 4. USERS (Founders, Team, and Clients)
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String   
+  role          Role     @default(CLIENT)
+  
+  // If they are a client, they link to a Client Company
+  clientId      String?
+  client        Client?  @relation(fields: [clientId], references: [id])
+
+  // If they are ADMIN/TEAM, they link to a Team Profile (Image 13 & 14)
+  teamProfile   TeamProfile? 
+
+  createdAt     DateTime @default(now())
+}
+
+// 5. TEAM PODS & PERFORMANCE (Image 13 & 14: "Founder Performance Data")
+// Linked 1-to-1 with a User who has the ADMIN or TEAM role
+model TeamProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Pod Details
+  podRoleLabel     String   // e.g., "Tech, AI & Automation Pod"
+  teamSize         Int      // e.g., 7
+  podDescription   String?  // e.g., "web builds, AI agents..."
+  
+  // Founder/Member Details
+  roleTitle        String?  // e.g., "Co-Founder - Tech, AI & Automation"
+  summary          String?  // 1-2 line description
+  completedMandates Int     @default(0)
+  ongoingProjects  Int      @default(0)
+  
+  // PostgreSQL handles arrays natively, perfect for your comma-separated lists!
+  services         String[] // e.g., ["Premium Websites", "AI Agents"]
+  completedWorks   String[] // e.g., ["Unidecor", "Navyya Nirman"]
+  ongoingWorks     String[] // e.g., ["AI cold calling agent"]
+  
+  updatedAt        DateTime @updatedAt
+}
+
+// 6. DELIVERABLES / POSTS
+model Post {
+  id             String       @id @default(cuid())
+  title          String     
+  driveLink      String     
+  caption        String?    
+  status         PostStatus   @default(DRAFT)
+  clientNote     String?    
+
+  targetPlatform PlatformType?
+  contentType    ContentType?
+
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id])
+  
+  createdAt      DateTime     @default(now()) 
+  updatedAt      DateTime     @updatedAt
+}

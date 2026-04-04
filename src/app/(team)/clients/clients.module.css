@@ -1,0 +1,537 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&display=swap');
+
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2.5rem 3rem 5rem;
+  font-family: 'Geist', sans-serif;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light);
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: var(--text-main);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary);
+  color: white;
+  padding: 0.7rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.addBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.14);
+}
+
+/* ── Toolbar ── */
+.toolbarWrapper {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.875rem;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchWrapper input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  /* iOS zoom fix */
+  font-size: max(16px, 0.9rem);
+  font-family: 'Geist', sans-serif;
+  color: var(--text-main);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+}
+
+.searchWrapper input::placeholder { color: var(--text-muted); }
+
+.searchWrapper input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background: white;
+}
+
+.filterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  padding: 0.75rem 1.125rem;
+  border-radius: 10px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: 'Geist', sans-serif;
+}
+
+.filterBtn:hover {
+  background: var(--bg-body);
+  color: var(--text-main);
+}
+
+.activeFilter {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* ── Filter drawer ── */
+.filterDrawer {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  animation: slideDown 0.18s ease-out;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 160px;
+}
+
+.filterGroup label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.filterGroup select {
+  padding: 0.6rem 0.875rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: white;
+  /* iOS zoom fix */
+  font-size: max(16px, 0.875rem);
+  font-family: 'Geist', sans-serif;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.filterGroup select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.clearBtn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--status-danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  font-family: 'Geist', sans-serif;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.clearBtn:hover { opacity: 0.75; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+/* ── Client Card ── */
+.clientCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.clientCard:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.brandIcon {
+  width: 46px;
+  height: 46px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.statusPill {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.brandMain {
+  margin-bottom: 1.25rem;
+}
+
+.brandName {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.brandIndustry {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.metrics {
+  display: flex;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  padding: 1rem 0;
+  margin-bottom: 1.25rem;
+}
+
+.metricItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.metricItem label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+}
+
+.metricItem span {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.cardFooter { margin-top: auto; }
+
+.portalLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--bg-body, #f5f6fa);
+  border: 1px solid var(--border-light);
+  padding: 0.7rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-main);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: 'Geist', sans-serif;
+}
+
+.portalLink:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── Empty state ── */
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 5rem 1rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.emptyState p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ── TABLET ── */
+@media (max-width: 1024px) {
+  .container { padding: 2rem 1.5rem 4rem; }
+}
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 1rem 4rem;
+    margin-top: 52px;
+  }
+
+  /* Header stacks */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .title { font-size: 2.1rem; }
+
+  .addBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+  }
+
+  /* Search full width, filter btn icon-only */
+  .toolbar { gap: 0.625rem; }
+
+  .filterBtn {
+    padding: 0.75rem 0.875rem;
+    gap: 0;
+  }
+
+  /* Filter drawer stacks */
+  .filterDrawer {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .filterGroup {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .filterGroup select {
+    width: 100%;
+  }
+
+  /* Grid single column */
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Cards tighter */
+  .clientCard {
+    padding: 1.25rem;
+    border-radius: 14px;
+    transform: none !important; /* disable hover lift on touch */
+  }
+
+  .brandIcon { width: 42px; height: 42px; font-size: 1rem; }
+  .brandName { font-size: 1.05rem; }
+}
+
+@media (max-width: 380px) {
+  .container { padding: 0.875rem 0.875rem 4rem; }
+  .title { font-size: 1.85rem; }
+}
+/* ── DRAG AND DROP UPLOADER ── */
+.dropZone {
+  border: 2px dashed var(--border-hi);
+  border-radius: var(--r-sm);
+  background: var(--s2);
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.dropZone:hover {
+  background: var(--s1);
+  border-color: var(--accent);
+}
+.dropZoneActive {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 4px rgba(74,124,16,0.1);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.uploadIcon {
+  color: var(--muted2);
+  margin-bottom: 4px;
+}
+.uploadPrompt p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+.uploadPrompt strong {
+  color: var(--accent);
+}
+.uploadPrompt span {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.previewContainer {
+  position: relative;
+  width: 100%;
+  max-height: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+.imagePreview {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  opacity: 0.8;
+}
+.videoPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.clearFileBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.clearFileBtn:hover {
+  background: rgba(220, 38, 38, 0.9);
+}
+
+/* Ensure Save Button shows correct disabled state */
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--muted2);
+}

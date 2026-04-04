@@ -1,0 +1,279 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&display=swap');
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end; /* bottom sheet on mobile */
+  justify-content: center;
+  z-index: 9999;
+  padding: 0;
+  animation: fadeIn 0.18s ease;
+}
+
+/* ── Modal / Sheet ── */
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.12);
+  font-family: 'Geist', sans-serif;
+  position: relative;
+  z-index: 10000;
+  max-height: 92dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: sheetUp 0.25s ease-out;
+}
+
+/* Drag handle hint */
+.modal::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  background: var(--border-light);
+  border-radius: 2px;
+  margin: 0.875rem auto 0;
+}
+
+/* ── Modal Header ── */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem 1.5rem 0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+  padding-top: 0.75rem;
+}
+
+.modalEyebrow {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 0.2rem;
+}
+
+.modalTitle {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.closeBtn {
+  background: var(--bg-body);
+  border: 1px solid var(--border-light);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.closeBtn:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: var(--status-danger);
+}
+
+/* ── Form ── */
+.form {
+  padding: 1.25rem 1.5rem 1.5rem;
+  padding-bottom: env(safe-area-inset-bottom, 1.5rem);
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.125rem;
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+}
+
+.input {
+  background: var(--bg-body);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 0.65rem 0.875rem;
+  /* prevent iOS zoom */
+  font-size: max(16px, 0.9rem);
+  color: var(--text-main);
+  font-family: 'Geist', sans-serif;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background: white;
+}
+
+.noteInput {
+  background: transparent;
+  border: 1px dashed var(--border-light);
+  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
+  font-size: max(16px, 0.78rem);
+  color: var(--text-muted);
+  font-family: 'Geist', sans-serif;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.noteInput:focus {
+  outline: none;
+  border-color: var(--border-hover);
+  border-style: solid;
+}
+
+.noteInput::placeholder {
+  color: var(--border-hover);
+}
+
+/* ── Actions ── */
+.actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.625rem;
+  border-top: 1px solid var(--border-light);
+  padding-top: 1.25rem;
+}
+
+.cancelBtn {
+  background: none;
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  padding: 0.7rem 0.875rem;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+  text-align: center;
+  width: 100%;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-body);
+  color: var(--text-main);
+}
+
+.saveBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Geist', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  width: 100%;
+  text-align: center;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--primary-hover, var(--primary));
+  transform: translateY(-1px);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes sheetUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Tablet+ → centred dialog ── */
+@media (min-width: 640px) {
+  .overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+  .modal {
+    max-width: 560px;
+    border-radius: 16px;
+    max-height: 88vh;
+    box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.18);
+  }
+
+  .modal::before { display: none; }
+
+  .modalHeader { padding: 1.75rem 2rem 0; }
+
+  .form {
+    padding: 1.5rem 2rem 2rem;
+  }
+
+  .inputGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem 1.5rem;
+  }
+
+  .actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .cancelBtn {
+    width: auto;
+    border: none;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .saveBtn {
+    width: auto;
+    padding: 0.6rem 1.5rem;
+  }
+
+  @keyframes sheetUp {
+    from { opacity: 0; transform: scale(0.97); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+}

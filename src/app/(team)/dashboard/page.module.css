@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&display=swap');
+
+.page {
+  min-height: 100vh;
+  padding: 2.5rem 3rem 4rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  font-family: 'Geist', sans-serif;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light);
+  animation: fadeIn 0.4s ease both;
+  gap: 1.5rem;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.eyebrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.6rem;
+  font-weight: 400;
+  color: var(--text-main);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 0.2rem;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  align-self: flex-end;
+  flex-shrink: 0;
+}
+
+.livePill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: white;
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  padding: 0.45rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  font-family: 'Geist', sans-serif;
+}
+
+.editBtn:hover {
+  background: var(--bg-body);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Section ── */
+.section {
+  margin-bottom: 2.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sectionLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border-light);
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-light);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.gridBottom {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg-surface);
+  padding: 1.75rem 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: relative;
+  transition: background 0.15s ease;
+  animation: fadeUp 0.45s ease both;
+}
+
+.card:hover { background: #fafafa; }
+
+.cardAccent { background: #fff9f7; }
+.cardAccent:hover { background: #fff5f0; }
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+}
+
+.cardNum {
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--border-hover);
+  letter-spacing: 0.05em;
+}
+
+.cardValue {
+  font-family: 'Instrument Serif', serif;
+  font-size: 3.25rem;
+  font-weight: 400;
+  color: var(--text-main);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.cardAccent .cardValue { color: var(--primary); }
+
+.cardNote {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
+
+.cardDivider {
+  width: 24px;
+  height: 2px;
+  background: var(--border-light);
+  border-radius: 2px;
+  margin-top: 1.25rem;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.card:hover .cardDivider {
+  width: 48px;
+  background: var(--primary);
+}
+
+.cardAccent .cardDivider {
+  background: var(--primary);
+  width: 32px;
+}
+
+/* ── Footer ── */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2rem;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roleBadge {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 1.25rem 1rem 3rem;
+    margin-top: 52px; /* sidebar mobile bar height */
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .title { font-size: 1.9rem; }
+
+  .headerRight {
+    align-self: flex-start;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    border-radius: 12px;
+  }
+
+  .gridBottom {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .card {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .cardValue {
+    font-size: 2.5rem;
+  }
+
+  .cardNote {
+    font-size: 0.7rem;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding-top: 1.5rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .page { padding: 1rem 0.875rem 3rem; }
+  .title { font-size: 1.7rem; }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gridBottom {
+    grid-template-columns: 1fr;
+  }
+
+  .cardValue { font-size: 2.75rem; }
+}
