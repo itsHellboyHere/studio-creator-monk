@@ -33,6 +33,11 @@ export default function Sidebar() {
 
   const closeMobile = () => setMobileOpen(false);
 
+  // Auto-close drawer on route change
+  useEffect(() => {
+    closeMobile();
+  }, [pathname]);
+
   useEffect(() => {
     const fetchCount = async () => {
       const count = await getActionablePostCount();
@@ -49,9 +54,9 @@ export default function Sidebar() {
           <Image
             src="/logo1.png"
             alt="CreatorMonk"
-            width={120}
-            height={34}
-            style={{ objectFit: "contain" }}
+            width={160}
+            height={80}
+            style={{ objectFit: "contain", objectPosition: "left" }}
             priority
           />
         </div>
@@ -60,7 +65,7 @@ export default function Sidebar() {
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
-          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           {actionCount > 0 && !mobileOpen && <span className={styles.mobileToggleDot} />}
         </button>
       </div>
@@ -82,8 +87,8 @@ export default function Sidebar() {
             <Image
               src="/logo1.png"
               alt="CreatorMonk"
-              width={130}
-              height={36}
+              width={160}
+              height={80}
               style={{ objectFit: "contain", objectPosition: "left", maxWidth: "100%" }}
               priority
             />
