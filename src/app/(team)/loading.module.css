@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400&display=swap');
+
+/* ── Shimmer keyframe ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Bone (skeleton element) ── */
+.bone {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #f0ede8 0%,
+    #e8e4de 40%,
+    #f0ede8 80%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ── Shell ── */
+.shell {
+  min-height: 100vh;
+  padding: 2.5rem 3rem 4rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  font-family: 'Geist', sans-serif;
+  background: var(--bg-body, #f8fafc);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border-light, #e2e8f0);
+  animation: fadeUp 0.3s ease both;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eyebrow {
+  width: 100px;
+  height: 10px;
+}
+
+.title {
+  width: 320px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.sub {
+  width: 200px;
+  height: 12px;
+}
+
+.statBlock {
+  width: 280px;
+  height: 80px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Section row ── */
+.sectionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.sectionLabel {
+  width: 120px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.sectionLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border-light, #e2e8f0);
+}
+
+/* ── Card grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-light, #e2e8f0);
+  border: 1px solid var(--border-light, #e2e8f0);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.grid2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* ── Card ── */
+.card {
+  background: white;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeUp 0.4s ease both;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.cardLabel {
+  width: 100px;
+  height: 9px;
+}
+
+.cardNum {
+  width: 20px;
+  height: 9px;
+}
+
+.cardValue {
+  width: 80px;
+  height: 48px;
+  border-radius: 6px;
+}
+
+.cardNote {
+  width: 140px;
+  height: 10px;
+}
+
+.cardBar {
+  width: 32px;
+  height: 2px;
+  border-radius: 2px;
+  margin-top: 0.75rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .shell { padding: 1.5rem 1.25rem 3rem; }
+  .grid { grid-template-columns: 1fr; }
+  .grid2 { grid-template-columns: 1fr; }
+  .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .title { width: 220px; }
+  .statBlock { width: 100%; }
+}
