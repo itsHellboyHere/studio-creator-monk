@@ -508,3 +508,59 @@
   @keyframes sheetUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
   .saveBtn { width: auto; justify-content: flex-start; }
 }
+
+
+
+/* email */
+.notifyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(180,83,9,0.3);
+  color: var(--amber);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notifyBtn:hover:not(:disabled) {
+  background: rgba(180,83,9,0.08);
+  border-color: var(--amber);
+}
+
+.notifyBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.notifySpinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(180,83,9,0.25);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.notifyToast {
+  padding: 12px 20px;
+  border-radius: var(--r-sm);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  animation: fadeUp 0.3s var(--ease) both;
+}

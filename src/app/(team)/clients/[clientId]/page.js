@@ -35,19 +35,27 @@ export default async function ClientAdminPage({ params, searchParams }) {
   if (!client) return notFound();
 
   // 3. We also need to know the total approved posts for the KPI cards.
-  // Since we aren't fetching all posts anymore, we must query this separately.
   const approvedCount = await db.post.count({
     where: { 
       clientId, 
       status: "APPROVED" 
     }
   });
-  // console.log("client --> ",client);
+
+  // 4. NEW: Get exact count of posts waiting for client review to fix the Notification bug
+  const pendingCount = await db.post.count({
+    where: { 
+      clientId, 
+      status: "PENDING_REVIEW" 
+    }
+  });
+
   return (
     <ClientDashboard 
       client={client} 
       totalPosts={totalPosts} 
       approvedCount={approvedCount}
+      pendingCount={pendingCount} // Pass it to the client component
       currentPage={currentPage}
       postsPerPage={POSTS_PER_PAGE}
     />

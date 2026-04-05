@@ -7,30 +7,34 @@ import {
   FiGlobe, FiInstagram, FiYoutube, FiFacebook,
   FiLinkedin, FiPhone, FiPackage, FiCalendar,
   FiExternalLink, FiChevronLeft, FiChevronRight,
-  FiActivity, FiLayers, FiArrowRight, FiZap, 
-  FiTrendingUp, FiGrid, FiEdit2, FiX, FiPlus, FiTrash2
+  FiActivity, FiLayers, FiArrowRight, FiZap,
+  FiTrendingUp, FiGrid, FiEdit2, FiX, FiPlus, FiTrash2,
+  FiBell
 } from "react-icons/fi";
-import { updateClientCore, addClientQuota, deleteClientQuota } from "./actions";
+import { updateClientCore, addClientQuota, deleteClientQuota, notifyClient } from "./actions";
 import DeliverableModal from "./DeliverableModal";
 import styles from "./clientPage.module.css";
 
-export default function ClientDashboard({ client, totalPosts, approvedCount, currentPage, postsPerPage }) {
+// Added pendingCount to the props
+export default function ClientDashboard({ client, totalPosts, approvedCount, pendingCount, currentPage, postsPerPage }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState(null); 
+  const [editingPost, setEditingPost] = useState(null);
   const [isNavigating, setIsNavigating] = useState(false);
-  
+  const [notifying, setNotifying] = useState(false);
+  const [notifyResult, setNotifyResult] = useState(null);
+
   const socialLinks = [
-    { id: "web", icon: <FiGlobe />,      label: "Website",   url: client.websiteUrl,    color: "#5bf0c4" },
-    { id: "ig",  icon: <FiInstagram />,  label: "Instagram", url: client.instagramUrl,  color: "#f06292" },
-    { id: "fb",  icon: <FiFacebook />,   label: "Facebook",  url: client.facebookUrl,   color: "#7c9ff5" },
-    { id: "yt",  icon: <FiYoutube />,    label: "YouTube",   url: client.youtubeUrl,    color: "#f87171" },
-    { id: "in",  icon: <FiLinkedin />,   label: "LinkedIn",  url: client.linkedinUrl,   color: "#60a5fa" },
-    { id: "wa",  icon: <FiPhone />,      label: "WhatsApp",  url: client.whatsappNumber,color: "#4ade80" },
+    { id: "web", icon: <FiGlobe />, label: "Website", url: client.websiteUrl, color: "#5bf0c4" },
+    { id: "ig", icon: <FiInstagram />, label: "Instagram", url: client.instagramUrl, color: "#f06292" },
+    { id: "fb", icon: <FiFacebook />, label: "Facebook", url: client.facebookUrl, color: "#7c9ff5" },
+    { id: "yt", icon: <FiYoutube />, label: "YouTube", url: client.youtubeUrl, color: "#f87171" },
+    { id: "in", icon: <FiLinkedin />, label: "LinkedIn", url: client.linkedinUrl, color: "#60a5fa" },
+    { id: "wa", icon: <FiPhone />, label: "WhatsApp", url: client.whatsappNumber, color: "#4ade80" },
   ];
 
   const connectedCount = socialLinks.filter(l => l.url).length;
@@ -45,7 +49,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    setTimeout(() => setIsNavigating(false), 500); 
+    setTimeout(() => setIsNavigating(false), 500);
   };
 
   return (
@@ -73,11 +77,11 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
           <div className={styles.avatarWrap}>
             <div className={styles.avatar}>
               {client.logoUrl ? (
-                <img 
-                  src={client.logoUrl} 
-                  alt={client.name} 
+                <img
+                  src={client.logoUrl}
+                  alt={client.name}
                   className={styles.logoImg}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} 
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
                 />
               ) : null}
               <span style={{ display: client.logoUrl ? 'none' : 'block' }}>
@@ -190,13 +194,13 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
                     <div className={styles.quotaRight}>
                       <span className={styles.quotaNum}>{q.amount}</span>
                       <span className={styles.quotaUnit}>/ mo</span>
-                      <button 
+                      <button
                         type="button"
                         onClick={async () => {
                           if (window.confirm("Are you sure you want to delete this quota?")) {
                             await deleteClientQuota(q.id, client.id);
                           }
-                        }} 
+                        }}
                         className={styles.deleteQuotaBtn}
                       >
                         <FiTrash2 size={13} />
@@ -217,17 +221,64 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
         </div>
 
         {/* ── CONTENT PIPELINE TABLE ── */}
-        <section className={styles.pipelineSection} style={{marginTop: '24px'}}>
+        <section className={styles.pipelineSection} style={{ marginTop: '24px' }}>
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
               <FiLayers size={18} className={styles.accentIcon} />
               <h2>Content Pipeline</h2>
               {isNavigating && <span className={styles.loadingText}>Loading...</span>}
             </div>
-            <button className={styles.primaryBtn} onClick={() => setEditingPost("NEW")}>
-              <FiPlus size={14} /> New Deliverable
-            </button>
+
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              
+              {/* NOW IT ONLY SHOWS IF THERE ARE ACTUAL POSTS TO REVIEW */}
+              {pendingCount > 0 && (
+                <button
+                  className={styles.notifyBtn}
+                  disabled={notifying}
+                  onClick={async () => {
+                    setNotifying(true);
+                    setNotifyResult(null);
+                    try {
+                      const result = await notifyClient(client.id);
+                      setNotifyResult({
+                        type: "success",
+                        message: `Email sent to ${result.notified.join(", ")} · ${result.pendingCount} item${result.pendingCount > 1 ? "s" : ""}`,
+                      });
+                    } catch (err) {
+                      setNotifyResult({ type: "error", message: err.message });
+                    } finally {
+                      setNotifying(false);
+                      setTimeout(() => setNotifyResult(null), 6000);
+                    }
+                  }}
+                >
+                  {notifying ? (
+                    <><span className={styles.notifySpinner} /> Sending...</>
+                  ) : (
+                    <><FiBell size={13} /> Notify Client</>
+                  )}
+                </button>
+              )}
+
+              <button className={styles.primaryBtn} onClick={() => setEditingPost("NEW")}>
+                <FiPlus size={14} /> New Deliverable
+              </button>
+            </div>
           </div>
+
+          {notifyResult && (
+            <div
+              className={styles.notifyToast}
+              style={{
+                background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
+                border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
+                color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
+              }}
+            >
+              {notifyResult.type === "success" ? "✓ " : "⚠ "}{notifyResult.message}
+            </div>
+          )}
 
           <div className={styles.pipelineBody}>
             {totalPosts === 0 ? (
@@ -263,12 +314,12 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
                             {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                           </td>
                           <td className={styles.tdActions}>
-                            <button 
-                              onClick={() => setEditingPost(post)} 
+                            <button
+                              onClick={() => setEditingPost(post)}
                               className={`${styles.iconBtn} ${post.status === "CHANGES_REQUESTED" ? styles.pulseAlert : ""}`}
                               title="Edit & View Feedback"
                             >
-                              <FiEdit2 size={15}/>
+                              <FiEdit2 size={15} />
                             </button>
                           </td>
                         </tr>
@@ -303,13 +354,13 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
 
       {/* ── EXTERNAL MODAL COMPONENTS ── */}
       {editingPost && (
-        <DeliverableModal 
+        <DeliverableModal
           post={editingPost === "NEW" ? null : editingPost}
           clientId={client.id}
           onClose={() => setEditingPost(null)}
           onSuccess={() => {
             setEditingPost(null);
-            router.push(`${pathname}?page=1`); 
+            router.push(`${pathname}?page=1`);
           }}
         />
       )}
@@ -319,7 +370,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>Edit Brand Profile</h2>
-              <button type="button" onClick={() => setIsEditModalOpen(false)} className={styles.closeBtn}><FiX size={20}/></button>
+              <button type="button" onClick={() => setIsEditModalOpen(false)} className={styles.closeBtn}><FiX size={20} /></button>
             </div>
             <form action={async (fd) => { await updateClientCore(client.id, fd); setIsEditModalOpen(false); }} className={styles.modalForm}>
               <div className={styles.formGrid}>
@@ -348,7 +399,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>Add Content Quota</h2>
-              <button type="button" onClick={() => setIsQuotaModalOpen(false)} className={styles.closeBtn}><FiX size={20}/></button>
+              <button type="button" onClick={() => setIsQuotaModalOpen(false)} className={styles.closeBtn}><FiX size={20} /></button>
             </div>
             <form action={async (fd) => { await addClientQuota(client.id, fd); setIsQuotaModalOpen(false); }} className={styles.modalForm}>
               <div className={styles.formGrid}>
@@ -366,7 +417,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, cur
                 </div>
                 <div className={styles.inputGroup}><label>Amount per Month</label><input name="amount" type="number" defaultValue={4} min={1} required className={styles.inputField} /></div>
               </div>
-              <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}><FiPlus/> Add Quota</button></div>
+              <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}><FiPlus /> Add Quota</button></div>
             </form>
           </div>
         </div>
