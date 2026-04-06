@@ -3,6 +3,8 @@
 import { useState } from "react";
 import styles from "./clients.module.css";
 
+// fixed img
+
 export default function BrandLogo({ name, imageUrl }) {
   const [hasError, setHasError] = useState(false);
   const letter = name ? name[0].toUpperCase() : "?";
