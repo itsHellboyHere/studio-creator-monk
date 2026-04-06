@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Building2, ExternalLink, Plus } from "lucide-react";
 import SearchBar from "./SearchBar";
-import BrandLogo from "./Brandlogo";
+import BrandLogo from "./BrandLogo";
 import styles from "./clients.module.css";
 
 export const metadata = { title: "Clients" };
