@@ -55,7 +55,7 @@ export default async function ClientAdminPage({ params, searchParams }) {
       client={client} 
       totalPosts={totalPosts} 
       approvedCount={approvedCount}
-      pendingCount={pendingCount} // Pass it to the client component
+      pendingCount={pendingCount} 
       currentPage={currentPage}
       postsPerPage={POSTS_PER_PAGE}
     />
