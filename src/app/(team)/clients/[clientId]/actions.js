@@ -51,7 +51,6 @@ function parseScheduledDate(formData) {
   return isNaN(d.getTime()) ? null : d;
 }
 
-// Parse mediaUrls from formData — stored as JSON string
 function parseMediaUrls(formData) {
   const raw = formData.get("mediaUrls");
   if (!raw) return [];
@@ -59,14 +58,12 @@ function parseMediaUrls(formData) {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
   } catch {
-    // Fallback: if single URL passed directly
     return raw ? [raw] : [];
   }
 }
 
 export async function createDeliverable(clientId, formData) {
   const mediaUrls = parseMediaUrls(formData);
-
   await db.post.create({
     data: {
       clientId,
@@ -84,7 +81,6 @@ export async function createDeliverable(clientId, formData) {
 
 export async function updateDeliverable(postId, clientId, formData) {
   const mediaUrls = parseMediaUrls(formData);
-
   await db.post.update({
     where: { id: postId },
     data: {
@@ -97,6 +93,12 @@ export async function updateDeliverable(postId, clientId, formData) {
       scheduledDate: parseScheduledDate(formData),
     }
   });
+  revalidatePath(`/clients/${clientId}`);
+}
+
+// ── NEW: Delete a deliverable permanently ──
+export async function deleteDeliverable(postId, clientId) {
+  await db.post.delete({ where: { id: postId } });
   revalidatePath(`/clients/${clientId}`);
 }
 

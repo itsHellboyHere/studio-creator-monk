@@ -444,3 +444,35 @@
   margin-left: 6px;
   vertical-align: middle;
 }
+
+/* ── DELETE BUTTON (append to clientPage.module.css) ── */
+
+.iconBtnDanger {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.iconBtnDanger:hover:not(:disabled) {
+  background: rgba(239,68,68,0.08);
+  border-color: rgba(239,68,68,0.35);
+  color: #ef4444;
+}
+.iconBtnDanger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.deleteSpinner {
+  display: inline-block;
+  width: 13px; height: 13px;
+  border: 2px solid rgba(239,68,68,0.25);
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}

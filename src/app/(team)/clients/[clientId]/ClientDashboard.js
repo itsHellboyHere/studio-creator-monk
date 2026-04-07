@@ -11,7 +11,7 @@ import {
   FiTrendingUp, FiGrid, FiEdit2, FiX, FiPlus, FiTrash2,
   FiBell, FiList
 } from "react-icons/fi";
-import { updateClientCore, addClientQuota, deleteClientQuota, notifyClient } from "./actions";
+import { updateClientCore, addClientQuota, deleteClientQuota, notifyClient, deleteDeliverable } from "./actions";
 import DeliverableModal from "./DeliverableModal";
 import ContentCalendar from "./ContentCalendar";
 import styles from "./clientPage.module.css";
@@ -27,8 +27,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
   const [isNavigating, setIsNavigating] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [notifyResult, setNotifyResult] = useState(null);
-
-  // ── NEW: tab state — "pipeline" | "calendar" ──
+  const [deletingPostId, setDeletingPostId] = useState(null); // track which post is being deleted
   const [activeTab, setActiveTab] = useState("pipeline");
 
   const socialLinks = [
@@ -55,13 +54,25 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
     setTimeout(() => setIsNavigating(false), 500);
   };
 
-  // When calendar clicks a post, open the edit modal
-  // The calendar only has id/title/platform/status, so we need to fetch full post
-  // We pass a minimal object — DeliverableModal will use what's available
   const handleCalendarEditPost = (postPreview) => {
-    // Find full post from client.posts if it's in current page, otherwise set partial
     const fullPost = client.posts.find(p => p.id === postPreview.id) || postPreview;
     setEditingPost(fullPost);
+  };
+
+  const handleDeletePost = async (post) => {
+    const confirmed = window.confirm(
+      `Delete "${post.title}"?\n\nThis permanently removes the post. Media files on S3 will expire naturally after 7 days.`
+    );
+    if (!confirmed) return;
+    setDeletingPostId(post.id);
+    try {
+      await deleteDeliverable(post.id, client.id);
+      router.push(`${pathname}?page=1`);
+    } catch (err) {
+      alert("Failed to delete post. Please try again.");
+    } finally {
+      setDeletingPostId(null);
+    }
   };
 
   return (
@@ -89,16 +100,10 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={styles.avatarWrap}>
             <div className={styles.avatar}>
               {client.logoUrl ? (
-                <img
-                  src={client.logoUrl}
-                  alt={client.name}
-                  className={styles.logoImg}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
-                />
+                <img src={client.logoUrl} alt={client.name} className={styles.logoImg}
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
               ) : null}
-              <span style={{ display: client.logoUrl ? 'none' : 'block' }}>
-                {getInitials(client.name)}
-              </span>
+              <span style={{ display: client.logoUrl ? 'none' : 'block' }}>{getInitials(client.name)}</span>
             </div>
             <div className={styles.avatarRing} />
           </div>
@@ -194,7 +199,6 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               <span className={styles.cardLabel}><FiLayers size={12} /> Monthly Quotas</span>
               <button className={styles.manageBtn} onClick={() => setIsQuotaModalOpen(true)}><FiGrid size={12} /> Manage</button>
             </div>
-
             {client.quotas.length > 0 ? (
               <div className={styles.quotaList}>
                 {client.quotas.map(q => (
@@ -206,15 +210,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                     <div className={styles.quotaRight}>
                       <span className={styles.quotaNum}>{q.amount}</span>
                       <span className={styles.quotaUnit}>/ mo</span>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (window.confirm("Are you sure you want to delete this quota?")) {
-                            await deleteClientQuota(q.id, client.id);
-                          }
-                        }}
-                        className={styles.deleteQuotaBtn}
-                      >
+                      <button type="button"
+                        onClick={async () => { if (window.confirm("Delete this quota?")) await deleteClientQuota(q.id, client.id); }}
+                        className={styles.deleteQuotaBtn}>
                         <FiTrash2 size={13} />
                       </button>
                     </div>
@@ -232,60 +230,39 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </div>
 
-        {/* ── CONTENT PIPELINE / CALENDAR SECTION ── */}
+        {/* ── PIPELINE / CALENDAR SECTION ── */}
         <section className={styles.pipelineSection} style={{ marginTop: '24px' }}>
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
-              {/* ── TAB SWITCHER ── */}
               <div className={styles.tabSwitcher}>
-                <button
-                  className={`${styles.tabBtn} ${activeTab === "pipeline" ? styles.tabBtnActive : ""}`}
-                  onClick={() => setActiveTab("pipeline")}
-                >
+                <button className={`${styles.tabBtn} ${activeTab === "pipeline" ? styles.tabBtnActive : ""}`} onClick={() => setActiveTab("pipeline")}>
                   <FiList size={13} /> Pipeline
                 </button>
-                <button
-                  className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabBtnActive : ""}`}
-                  onClick={() => setActiveTab("calendar")}
-                >
+                <button className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabBtnActive : ""}`} onClick={() => setActiveTab("calendar")}>
                   <FiCalendar size={13} /> Calendar
                 </button>
               </div>
-              {isNavigating && activeTab === "pipeline" && (
-                <span className={styles.loadingText}>Loading...</span>
-              )}
+              {isNavigating && activeTab === "pipeline" && <span className={styles.loadingText}>Loading...</span>}
             </div>
 
             <div className={styles.pipelineActions}>
               {pendingCount > 0 && (
-                <button
-                  className={styles.notifyBtn}
-                  disabled={notifying}
+                <button className={styles.notifyBtn} disabled={notifying}
                   onClick={async () => {
-                    setNotifying(true);
-                    setNotifyResult(null);
+                    setNotifying(true); setNotifyResult(null);
                     try {
                       const result = await notifyClient(client.id);
-                      setNotifyResult({
-                        type: "success",
-                        message: `Email sent to ${result.notified.join(", ")} · ${result.pendingCount} item${result.pendingCount > 1 ? "s" : ""}`,
-                      });
+                      setNotifyResult({ type: "success", message: `Email sent to ${result.notified.join(", ")} · ${result.pendingCount} item${result.pendingCount > 1 ? "s" : ""}` });
                     } catch (err) {
                       setNotifyResult({ type: "error", message: err.message });
                     } finally {
                       setNotifying(false);
                       setTimeout(() => setNotifyResult(null), 6000);
                     }
-                  }}
-                >
-                  {notifying ? (
-                    <><span className={styles.notifySpinner} /> Sending...</>
-                  ) : (
-                    <><FiBell size={13} /> Notify Client</>
-                  )}
+                  }}>
+                  {notifying ? <><span className={styles.notifySpinner} /> Sending...</> : <><FiBell size={13} /> Notify Client</>}
                 </button>
               )}
-
               <button className={styles.primaryBtn} onClick={() => setEditingPost("NEW")}>
                 <FiPlus size={14} /> New Deliverable
               </button>
@@ -293,16 +270,12 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
 
           {notifyResult && (
-            <div
-              className={styles.notifyToast}
-              style={{
-                background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
-                border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
-                color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
-                margin: "0 24px",
-                marginTop: "12px",
-              }}
-            >
+            <div className={styles.notifyToast} style={{
+              background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
+              border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
+              color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
+              margin: "0 24px", marginTop: "12px",
+            }}>
               {notifyResult.type === "success" ? "✓ " : "⚠ "}{notifyResult.message}
             </div>
           )}
@@ -332,7 +305,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                       </thead>
                       <tbody>
                         {client.posts.map(post => (
-                          <tr key={post.id}>
+                          <tr key={post.id} style={{ opacity: deletingPostId === post.id ? 0.4 : 1, transition: "opacity 200ms" }}>
                             <td className={styles.cellTitle}>
                               {post.title}
                               {post.mediaUrls?.length > 1 && (
@@ -350,19 +323,32 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                             <td className={styles.cellDate}>
                               {post.scheduledDate
                                 ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
-                                : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>
-                              }
+                                : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>}
                             </td>
                             <td className={styles.cellDate}>
                               {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                             </td>
                             <td className={styles.tdActions}>
+                              {/* Edit button */}
                               <button
                                 onClick={() => setEditingPost(post)}
                                 className={`${styles.iconBtn} ${post.status === "CHANGES_REQUESTED" ? styles.pulseAlert : ""}`}
-                                title="Edit & View Feedback"
+                                title="Edit"
+                                disabled={deletingPostId === post.id}
                               >
                                 <FiEdit2 size={15} />
+                              </button>
+
+                              {/* Delete button */}
+                              <button
+                                onClick={() => handleDeletePost(post)}
+                                className={styles.iconBtnDanger}
+                                title="Delete post"
+                                disabled={deletingPostId === post.id}
+                              >
+                                {deletingPostId === post.id
+                                  ? <span className={styles.deleteSpinner} />
+                                  : <FiTrash2 size={15} />}
                               </button>
                             </td>
                           </tr>
@@ -397,25 +383,19 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           {/* ── CALENDAR TAB ── */}
           {activeTab === "calendar" && (
             <div style={{ padding: "16px" }}>
-              <ContentCalendar
-                clientId={client.id}
-                onEditPost={handleCalendarEditPost}
-              />
+              <ContentCalendar clientId={client.id} onEditPost={handleCalendarEditPost} />
             </div>
           )}
         </section>
       </div>
 
-      {/* ── EXTERNAL MODAL COMPONENTS ── */}
+      {/* ── MODALS ── */}
       {editingPost && (
         <DeliverableModal
           post={editingPost === "NEW" ? null : editingPost}
           clientId={client.id}
           onClose={() => setEditingPost(null)}
-          onSuccess={() => {
-            setEditingPost(null);
-            router.push(`${pathname}?page=1`);
-          }}
+          onSuccess={() => { setEditingPost(null); router.push(`${pathname}?page=1`); }}
         />
       )}
 
