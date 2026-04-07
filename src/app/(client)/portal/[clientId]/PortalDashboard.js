@@ -5,7 +5,6 @@ import { updateClientProfile, submitPostReview } from "./actions";
 import styles from "./portal.module.css";
 import PortalCalendar from "./PortalCalendar";
 
-// ── CAROUSEL MEDIA VIEWER ──
 function MediaViewer({ post }) {
   const [index, setIndex] = useState(0);
   const [errors, setErrors] = useState({});
@@ -19,9 +18,7 @@ function MediaViewer({ post }) {
   if (!urls.length) {
     return (
       <div className={styles.noMedia}>
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1">
-          <polygon points="5 3 19 12 5 21 5 3" />
-        </svg>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1"><polygon points="5 3 19 12 5 21 5 3" /></svg>
         <span>No media attached</span>
       </div>
     );
@@ -34,8 +31,7 @@ function MediaViewer({ post }) {
     return (
       <div className={styles.noMedia} style={{ color: "#b45309", backgroundColor: "#fffbeb", padding: "20px" }}>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
+          <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
         </svg>
         <span style={{ color: "#78350f", fontWeight: "600", fontSize: "14px" }}>Media Expired</span>
         <p style={{ fontSize: "11px", marginTop: "6px", maxWidth: "220px", textAlign: "center", color: "#92400e", lineHeight: "1.4", margin: "6px 0 0 0" }}>
@@ -66,7 +62,6 @@ function MediaViewer({ post }) {
   return (
     <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0c0a09" }}>
       {renderMedia()}
-
       {urls.length > 1 && (
         <>
           <button type="button" onClick={() => setIndex(i => Math.max(0, i - 1))} disabled={index === 0}
@@ -88,7 +83,6 @@ function MediaViewer({ post }) {
           </div>
         </>
       )}
-
       <div className={styles.expiryNotice}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -99,7 +93,6 @@ function MediaViewer({ post }) {
   );
 }
 
-// ── META ──
 const PLATFORM_META = {
   INSTAGRAM: { label: "Instagram", color: "#ec4899", bg: "#fdf2f8" },
   FACEBOOK:  { label: "Facebook",  color: "#3b82f6", bg: "#eff6ff" },
@@ -110,7 +103,6 @@ const PLATFORM_META = {
 };
 const CONTENT_TYPE_LABELS = { REEL: "Reel", POST: "Post", STORY: "Story", VIDEO_LONG: "Long Video" };
 
-// ── QUOTA PROGRESS ──
 function QuotaProgress({ quotas, posts }) {
   const approvedCounts = useMemo(() => {
     const map = {};
@@ -155,7 +147,7 @@ function QuotaProgress({ quotas, posts }) {
       </div>
       <div className={styles.qpBody}>
         {Object.entries(byPlatform).map(([platform, rows]) => {
-          const pm = PLATFORM_META[platform] || PLATFORM_META.OTHER;
+          const pm        = PLATFORM_META[platform] || PLATFORM_META.OTHER;
           const platTotal = rows.reduce((s, q) => s + q.amount, 0);
           const platDone  = rows.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
           const platLeft  = platTotal - platDone;
@@ -171,11 +163,11 @@ function QuotaProgress({ quotas, posts }) {
                 </span>
               </div>
               {rows.map(q => {
-                const key = `${q.platform}__${q.contentType}`;
-                const done = Math.min(approvedCounts[key] || 0, q.amount);
-                const left = q.amount - done;
-                const pct  = q.amount > 0 ? (done / q.amount) * 100 : 0;
-                const label = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
+                const key      = `${q.platform}__${q.contentType}`;
+                const done     = Math.min(approvedCounts[key] || 0, q.amount);
+                const left     = q.amount - done;
+                const pct      = q.amount > 0 ? (done / q.amount) * 100 : 0;
+                const label    = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
                 const complete = left === 0;
                 return (
                   <div key={q.id} className={styles.qpTypeRow}>
@@ -204,7 +196,6 @@ function QuotaProgress({ quotas, posts }) {
   );
 }
 
-// ── NAV ──
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
   { id: "content",  label: "Content" },
@@ -242,7 +233,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentRef = useRef(null);
 
-  // ── SCROLL LOCK — correct iOS Safari pattern ──
+  // ── SCROLL LOCK — iOS Safari pattern ──
   useEffect(() => {
     const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
     if (isOpen) {
@@ -255,7 +246,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       document.body.dataset.scrollY = String(scrollY);
     } else {
       const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-      // Clear top first so browser doesn't flash top
       document.body.style.top      = "";
       document.body.style.position = "";
       document.body.style.left     = "";
@@ -328,23 +318,27 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
 
   const closeReview = () => { setReviewPost(null); setFeedback(""); };
 
-  const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setActiveNav(id);
+  // ── FIX: close drawer → wait for body unlock → then scroll ──
+  const scrollTo = useCallback((id) => {
     setMobileNavOpen(false);
-  };
+    setActiveNav(id);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY - 70;
+        window.scrollTo({ top, behavior: "smooth" });
+      });
+    });
+  }, []);
 
-  const getThumb = (post) => {
-    if (post.mediaUrls?.length) return post.mediaUrls[0];
-    return post.driveLink || null;
-  };
-
+  const getThumb      = (post) => post.mediaUrls?.length ? post.mediaUrls[0] : (post.driveLink || null);
   const getSlideCount = (post) => post.mediaUrls?.length || 1;
 
   return (
     <div className={styles.portal}>
 
-      {/* ── TOP NAV ── */}
+      {/* ── NAV ── */}
       <nav className={styles.topNav}>
         <div className={styles.navInner}>
           <div className={styles.navLeft}>
@@ -394,7 +388,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
         </div>
       </nav>
 
-      {/* ── MOBILE NAV DRAWER ── */}
+      {/* ── MOBILE DRAWER ── */}
       {mobileNavOpen && (
         <div className={styles.mobileNavBackdrop} onClick={() => setMobileNavOpen(false)}>
           <div className={styles.mobileNavDrawer} onClick={e => e.stopPropagation()}>
@@ -429,7 +423,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       {/* ── MAIN ── */}
       <main className={styles.main}>
 
-        {/* OVERVIEW */}
         <section id="overview" className={styles.section}>
           <div className={styles.heroGrid}>
             <div className={styles.heroText}>
@@ -453,7 +446,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           {client.quotas?.length > 0 && <QuotaProgress quotas={client.quotas} posts={allPosts} />}
         </section>
 
-        {/* CONTENT */}
         <section id="content" className={styles.section} ref={contentRef}>
           <div className={styles.sectionHead}>
             <div>
@@ -477,22 +469,17 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             <>
               <div className={styles.grid}>
                 {pagedPosts.map(post => {
-                  const pc        = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
-                  const sm        = STATUS_META[post.status] || STATUS_META.DRAFT;
-                  const isPending = post.status === "PENDING_REVIEW";
+                  const pc         = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
+                  const sm         = STATUS_META[post.status] || STATUS_META.DRAFT;
+                  const isPending  = post.status === "PENDING_REVIEW";
                   const slideCount = getSlideCount(post);
-                  const thumbUrl  = getThumb(post);
+                  const thumbUrl   = getThumb(post);
                   const isImgThumb = thumbUrl && !thumbUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i) && !thumbUrl.includes("drive.google.com");
-
                   return (
-                    <div key={post.id}
-                      className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
-                      onClick={() => setReviewPost(post)}
-                      role="button" tabIndex={0}
+                    <div key={post.id} className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
+                      onClick={() => setReviewPost(post)} role="button" tabIndex={0}
                       onKeyDown={(e) => e.key === "Enter" && setReviewPost(post)}>
-
                       {isPending && <div className={styles.pendingEyebrow}><span className={styles.pendingEyebrowDot} />Action Needed — Awaiting Your Review</div>}
-
                       <div className={styles.cardTop}>
                         <div className={styles.cardThumb} style={{ background: pc.bg, overflow: "hidden", position: "relative" }}>
                           {isImgThumb
@@ -506,7 +493,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                         </div>
                         <span className={styles.platformTag} style={{ background: pc.bg, color: pc.color }}>{post.targetPlatform}</span>
                       </div>
-
                       <h3 className={styles.cardTitle}>{post.title}</h3>
                       {post.caption && <p className={styles.cardCaption}>{post.caption.slice(0, 90)}…</p>}
                       <div className={styles.cardFooter}>
@@ -517,7 +503,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                   );
                 })}
               </div>
-
               {totalPages > 1 && (
                 <div className={styles.pagination}>
                   <button className={styles.pageBtn} onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
@@ -539,7 +524,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           )}
         </section>
 
-        {/* CALENDAR */}
         <section id="calendar" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Content Calendar</h2><p className={styles.sectionSub}>See what&apos;s scheduled across all platforms.</p></div>
@@ -547,7 +531,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           <PortalCalendar posts={client.posts} />
         </section>
 
-        {/* PLAN */}
         <section id="plan" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Monthly Plan</h2><p className={styles.sectionSub}>Your agreed deliverables per platform.</p></div>
@@ -573,7 +556,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           )}
         </section>
 
-        {/* PROFILE */}
         <section id="profile" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Brand Profile</h2><p className={styles.sectionSub}>Your social links and brand information.</p></div>
@@ -583,14 +565,20 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             {client.brandDescription && <div className={styles.bioSection}><span className={styles.bioLabel}>About</span><p className={styles.bioText}>{client.brandDescription}</p></div>}
             <div className={styles.socialList}>
               {[
-                { label: "Website", val: client.websiteUrl }, { label: "Instagram", val: client.instagramUrl },
-                { label: "Facebook", val: client.facebookUrl }, { label: "YouTube", val: client.youtubeUrl },
-                { label: "LinkedIn", val: client.linkedinUrl }, { label: "WhatsApp", val: client.whatsappNumber },
-                { label: "Twitter / X", val: client.twitterXUrl }, { label: "Other", val: client.otherSocialUrl },
+                { label: "Website",     val: client.websiteUrl },
+                { label: "Instagram",   val: client.instagramUrl },
+                { label: "Facebook",    val: client.facebookUrl },
+                { label: "YouTube",     val: client.youtubeUrl },
+                { label: "LinkedIn",    val: client.linkedinUrl },
+                { label: "WhatsApp",    val: client.whatsappNumber },
+                { label: "Twitter / X", val: client.twitterXUrl },
+                { label: "Other",       val: client.otherSocialUrl },
               ].map(s => (
                 <div key={s.label} className={styles.socialRow}>
                   <span className={styles.socialLabel}>{s.label}</span>
-                  {s.val ? <a href={s.val.startsWith("http") ? s.val : `https://${s.val}`} target="_blank" rel="noreferrer" className={styles.socialLink}>{s.val}</a> : <span className={styles.socialEmpty}>Not connected</span>}
+                  {s.val
+                    ? <a href={s.val.startsWith("http") ? s.val : `https://${s.val}`} target="_blank" rel="noreferrer" className={styles.socialLink}>{s.val}</a>
+                    : <span className={styles.socialEmpty}>Not connected</span>}
                 </div>
               ))}
             </div>
@@ -603,7 +591,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
         </div>
       </main>
 
-      {/* ── SCROLL TO TOP ── */}
       <button className={`${styles.scrollTopBtn} ${showScrollTop ? styles.scrollTopVisible : ""}`}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Back to top">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="18 15 12 9 6 15" /></svg>
@@ -613,8 +600,6 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       {reviewPost && (
         <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && closeReview()}>
           <div className={styles.reviewModal}>
-
-            {/* Header */}
             <div className={styles.modalHead}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <p className={styles.modalEyebrow}>
@@ -631,13 +616,8 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
-
-            {/* Body */}
             <div className={styles.reviewBody}>
-              <div className={styles.mediaPanel}>
-                <MediaViewer post={reviewPost} />
-              </div>
-
+              <div className={styles.mediaPanel}><MediaViewer post={reviewPost} /></div>
               <div className={styles.feedbackPanel}>
                 {reviewPost.caption && (
                   <div className={styles.captionBox}>
@@ -645,24 +625,15 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                     <p className={styles.captionText}>{reviewPost.caption}</p>
                   </div>
                 )}
-
                 {reviewPost.status === "PENDING_REVIEW" ? (
                   <div className={styles.feedbackBox}>
                     <label className={styles.feedbackLabel}>Your Feedback</label>
-                    <textarea
-                      value={feedback}
-                      onChange={e => setFeedback(e.target.value)}
+                    <textarea value={feedback} onChange={e => setFeedback(e.target.value)}
                       placeholder="Looks great! OR Please change slide 2…"
-                      className={styles.feedbackInput}
-                      rows={4}
-                    />
+                      className={styles.feedbackInput} rows={4} />
                     <div className={styles.reviewActions}>
-                      <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>
-                        Request Changes
-                      </button>
-                      <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>
-                        {submitting ? "Saving…" : "✓ Approve"}
-                      </button>
+                      <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>Request Changes</button>
+                      <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>{submitting ? "Saving…" : "✓ Approve"}</button>
                     </div>
                   </div>
                 ) : (
@@ -697,14 +668,14 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
               <div className={styles.field}><span className={styles.fieldLabel}>Brand Bio</span><textarea name="brandDescription" defaultValue={client.brandDescription || ""} rows={3} placeholder="Describe your brand…" className={styles.fieldTextarea} /></div>
               <div className={styles.fieldGrid}>
                 {[
-                  { name: "websiteUrl", label: "Website URL", val: client.websiteUrl },
-                  { name: "whatsappNumber", label: "WhatsApp", val: client.whatsappNumber },
-                  { name: "instagramUrl", label: "Instagram URL", val: client.instagramUrl },
-                  { name: "facebookUrl", label: "Facebook URL", val: client.facebookUrl },
-                  { name: "youtubeUrl", label: "YouTube URL", val: client.youtubeUrl },
-                  { name: "linkedinUrl", label: "LinkedIn URL", val: client.linkedinUrl },
-                  { name: "twitterXUrl", label: "Twitter / X URL", val: client.twitterXUrl },
-                  { name: "otherSocialUrl", label: "Other Link", val: client.otherSocialUrl },
+                  { name: "websiteUrl",     label: "Website URL",     val: client.websiteUrl },
+                  { name: "whatsappNumber", label: "WhatsApp",        val: client.whatsappNumber },
+                  { name: "instagramUrl",   label: "Instagram URL",   val: client.instagramUrl },
+                  { name: "facebookUrl",    label: "Facebook URL",    val: client.facebookUrl },
+                  { name: "youtubeUrl",     label: "YouTube URL",     val: client.youtubeUrl },
+                  { name: "linkedinUrl",    label: "LinkedIn URL",    val: client.linkedinUrl },
+                  { name: "twitterXUrl",    label: "Twitter / X URL", val: client.twitterXUrl },
+                  { name: "otherSocialUrl", label: "Other Link",      val: client.otherSocialUrl },
                 ].map(f => (
                   <div key={f.name} className={styles.field}>
                     <span className={styles.fieldLabel}>{f.label}</span>
