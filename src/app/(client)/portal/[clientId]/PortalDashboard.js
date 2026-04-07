@@ -315,10 +315,9 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
 //   document.body.style.overflow = (reviewPost || editOpen || mobileNavOpen) ? "hidden" : "";
 // Replace the entire useEffect with this:
 
-  useEffect(() => {
+useEffect(() => {
     const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
     if (isOpen) {
-      // Save current scroll position and freeze body in place
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
@@ -327,27 +326,28 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       document.body.style.overflow = "hidden";
       document.body.dataset.scrollY = scrollY;
     } else {
-      // Restore scroll position when modal closes
       const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-      document.body.style.position = "";
+      // ── KEY FIX: restore scroll BEFORE removing position:fixed ──
+      // If we remove position:fixed first, the browser briefly shows top of page
+      // Instead: set the scroll position first, THEN remove fixed
       document.body.style.top = "";
+      document.body.style.position = "";
       document.body.style.left = "";
       document.body.style.right = "";
       document.body.style.overflow = "";
+      window.scrollTo({ top: scrollY, behavior: "instant" });
       delete document.body.dataset.scrollY;
-      window.scrollTo(0, scrollY);
     }
     return () => {
-      // Cleanup on unmount
-      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.overflow = "";
       if (document.body.dataset.scrollY) {
+        const scrollY = parseInt(document.body.dataset.scrollY, 10);
+        document.body.style.top = "";
+        document.body.style.position = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.overflow = "";
+        window.scrollTo({ top: scrollY, behavior: "instant" });
         delete document.body.dataset.scrollY;
-        window.scrollTo(0, scrollY);
       }
     };
   }, [reviewPost, editOpen, mobileNavOpen]);
