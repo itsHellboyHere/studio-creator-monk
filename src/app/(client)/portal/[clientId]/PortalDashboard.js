@@ -327,9 +327,7 @@ useEffect(() => {
       document.body.dataset.scrollY = scrollY;
     } else {
       const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-      // ── KEY FIX: restore scroll BEFORE removing position:fixed ──
-      // If we remove position:fixed first, the browser briefly shows top of page
-      // Instead: set the scroll position first, THEN remove fixed
+    
       document.body.style.top = "";
       document.body.style.position = "";
       document.body.style.left = "";
