@@ -9,13 +9,13 @@ import {
   FiExternalLink, FiChevronLeft, FiChevronRight,
   FiActivity, FiLayers, FiArrowRight, FiZap,
   FiTrendingUp, FiGrid, FiEdit2, FiX, FiPlus, FiTrash2,
-  FiBell
+  FiBell, FiList
 } from "react-icons/fi";
 import { updateClientCore, addClientQuota, deleteClientQuota, notifyClient } from "./actions";
 import DeliverableModal from "./DeliverableModal";
+import ContentCalendar from "./ContentCalendar";
 import styles from "./clientPage.module.css";
 
-// Added pendingCount to the props
 export default function ClientDashboard({ client, totalPosts, approvedCount, pendingCount, currentPage, postsPerPage }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -27,6 +27,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
   const [isNavigating, setIsNavigating] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [notifyResult, setNotifyResult] = useState(null);
+
+  // ── NEW: tab state — "pipeline" | "calendar" ──
+  const [activeTab, setActiveTab] = useState("pipeline");
 
   const socialLinks = [
     { id: "web", icon: <FiGlobe />, label: "Website", url: client.websiteUrl, color: "#5bf0c4" },
@@ -50,6 +53,15 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
     params.set('page', newPage.toString());
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
     setTimeout(() => setIsNavigating(false), 500);
+  };
+
+  // When calendar clicks a post, open the edit modal
+  // The calendar only has id/title/platform/status, so we need to fetch full post
+  // We pass a minimal object — DeliverableModal will use what's available
+  const handleCalendarEditPost = (postPreview) => {
+    // Find full post from client.posts if it's in current page, otherwise set partial
+    const fullPost = client.posts.find(p => p.id === postPreview.id) || postPreview;
+    setEditingPost(fullPost);
   };
 
   return (
@@ -220,18 +232,31 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </div>
 
-        {/* ── CONTENT PIPELINE TABLE ── */}
+        {/* ── CONTENT PIPELINE / CALENDAR SECTION ── */}
         <section className={styles.pipelineSection} style={{ marginTop: '24px' }}>
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
-              <FiLayers size={18} className={styles.accentIcon} />
-              <h2>Content Pipeline</h2>
-              {isNavigating && <span className={styles.loadingText}>Loading...</span>}
+              {/* ── TAB SWITCHER ── */}
+              <div className={styles.tabSwitcher}>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "pipeline" ? styles.tabBtnActive : ""}`}
+                  onClick={() => setActiveTab("pipeline")}
+                >
+                  <FiList size={13} /> Pipeline
+                </button>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabBtnActive : ""}`}
+                  onClick={() => setActiveTab("calendar")}
+                >
+                  <FiCalendar size={13} /> Calendar
+                </button>
+              </div>
+              {isNavigating && activeTab === "pipeline" && (
+                <span className={styles.loadingText}>Loading...</span>
+              )}
             </div>
 
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              
-              {/* NOW IT ONLY SHOWS IF THERE ARE ACTUAL POSTS TO REVIEW */}
+            <div className={styles.pipelineActions}>
               {pendingCount > 0 && (
                 <button
                   className={styles.notifyBtn}
@@ -274,81 +299,103 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                 background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
                 border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
                 color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
+                margin: "0 24px",
+                marginTop: "12px",
               }}
             >
               {notifyResult.type === "success" ? "✓ " : "⚠ "}{notifyResult.message}
             </div>
           )}
 
-          <div className={styles.pipelineBody}>
-            {totalPosts === 0 ? (
-              <div className={styles.emptyPipeline}>
-                <FiYoutube size={32} />
-                <p>No content uploaded yet.</p>
-                <span>Upload a video/image to start the approval process.</span>
-              </div>
-            ) : (
-              <>
-                <div className={styles.tableWrapper}>
-                  <table className={`${styles.table} ${isNavigating ? styles.tableLoading : ""}`}>
-                    <thead>
-                      <tr>
-                        <th>Title</th>
-                        <th>Platform</th>
-                        <th>Status</th>
-                        <th>Date Added</th>
-                        <th className={styles.thRight}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {client.posts.map(post => (
-                        <tr key={post.id}>
-                          <td className={styles.cellTitle}>{post.title}</td>
-                          <td className={styles.cellPlatform}>{post.targetPlatform} {post.contentType}</td>
-                          <td>
-                            <span className={`${styles.statusBadge} ${styles[post.status]}`}>
-                              {post.status.replace("_", " ")}
-                            </span>
-                          </td>
-                          <td className={styles.cellDate}>
-                            {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
-                          </td>
-                          <td className={styles.tdActions}>
-                            <button
-                              onClick={() => setEditingPost(post)}
-                              className={`${styles.iconBtn} ${post.status === "CHANGES_REQUESTED" ? styles.pulseAlert : ""}`}
-                              title="Edit & View Feedback"
-                            >
-                              <FiEdit2 size={15} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* ── PIPELINE TAB ── */}
+          {activeTab === "pipeline" && (
+            <div className={styles.pipelineBody}>
+              {totalPosts === 0 ? (
+                <div className={styles.emptyPipeline}>
+                  <FiYoutube size={32} />
+                  <p>No content uploaded yet.</p>
+                  <span>Upload a video/image to start the approval process.</span>
                 </div>
-
-                {totalPages > 1 && (
-                  <div className={styles.pagination}>
-                    <span className={styles.pageInfo}>
-                      Showing {(currentPage - 1) * postsPerPage + 1} to {Math.min(currentPage * postsPerPage, totalPosts)} of {totalPosts}
-                    </span>
-                    <div className={styles.pageControls}>
-                      <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage - 1)} disabled={currentPage === 1 || isNavigating}>
-                        <FiChevronLeft size={14} /> Prev
-                      </button>
-                      <div className={styles.pageNumbers}>
-                        <span className={styles.activePage}>{currentPage}</span> / {totalPages}
-                      </div>
-                      <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage + 1)} disabled={currentPage === totalPages || isNavigating}>
-                        Next <FiChevronRight size={14} />
-                      </button>
-                    </div>
+              ) : (
+                <>
+                  <div className={styles.tableWrapper}>
+                    <table className={`${styles.table} ${isNavigating ? styles.tableLoading : ""}`}>
+                      <thead>
+                        <tr>
+                          <th>Title</th>
+                          <th>Platform</th>
+                          <th>Status</th>
+                          <th>Scheduled</th>
+                          <th>Date Added</th>
+                          <th className={styles.thRight}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {client.posts.map(post => (
+                          <tr key={post.id}>
+                            <td className={styles.cellTitle}>{post.title}</td>
+                            <td className={styles.cellPlatform}>{post.targetPlatform} {post.contentType}</td>
+                            <td>
+                              <span className={`${styles.statusBadge} ${styles[post.status]}`}>
+                                {post.status.replace("_", " ")}
+                              </span>
+                            </td>
+                            <td className={styles.cellDate}>
+                              {post.scheduledDate
+                                ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+                                : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>
+                              }
+                            </td>
+                            <td className={styles.cellDate}>
+                              {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                            </td>
+                            <td className={styles.tdActions}>
+                              <button
+                                onClick={() => setEditingPost(post)}
+                                className={`${styles.iconBtn} ${post.status === "CHANGES_REQUESTED" ? styles.pulseAlert : ""}`}
+                                title="Edit & View Feedback"
+                              >
+                                <FiEdit2 size={15} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </>
-            )}
-          </div>
+
+                  {totalPages > 1 && (
+                    <div className={styles.pagination}>
+                      <span className={styles.pageInfo}>
+                        Showing {(currentPage - 1) * postsPerPage + 1} to {Math.min(currentPage * postsPerPage, totalPosts)} of {totalPosts}
+                      </span>
+                      <div className={styles.pageControls}>
+                        <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage - 1)} disabled={currentPage === 1 || isNavigating}>
+                          <FiChevronLeft size={14} /> Prev
+                        </button>
+                        <div className={styles.pageNumbers}>
+                          <span className={styles.activePage}>{currentPage}</span> / {totalPages}
+                        </div>
+                        <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage + 1)} disabled={currentPage === totalPages || isNavigating}>
+                          Next <FiChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── CALENDAR TAB ── */}
+          {activeTab === "calendar" && (
+            <div style={{ padding: "16px" }}>
+              <ContentCalendar
+                clientId={client.id}
+                onEditPost={handleCalendarEditPost}
+              />
+            </div>
+          )}
         </section>
       </div>
 

@@ -44,6 +44,14 @@ export async function deleteClientQuota(quotaId, clientId) {
   revalidatePath(`/clients/${clientId}`);
 }
 
+// Helper: parse scheduledDate safely
+function parseScheduledDate(formData) {
+  const raw = formData.get("scheduledDate");
+  if (!raw || raw === "") return null;
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export async function createDeliverable(clientId, formData) {
   await db.post.create({
     data: {
@@ -53,23 +61,24 @@ export async function createDeliverable(clientId, formData) {
       caption: formData.get("caption") || null,
       targetPlatform: formData.get("targetPlatform") || null,
       contentType: formData.get("contentType") || null,
-      status: formData.get("status") || "DRAFT", 
+      status: formData.get("status") || "DRAFT",
+      scheduledDate: parseScheduledDate(formData), // NEW
     }
   });
   revalidatePath(`/clients/${clientId}`);
 }
 
-// NEW: Action to update an existing deliverable (Closing the feedback loop)
 export async function updateDeliverable(postId, clientId, formData) {
   await db.post.update({
     where: { id: postId },
     data: {
       title: formData.get("title"),
-      driveLink: formData.get("driveLink"), // Team can paste new S3 link here (V2)
+      driveLink: formData.get("driveLink"),
       caption: formData.get("caption") || null,
       targetPlatform: formData.get("targetPlatform") || null,
       contentType: formData.get("contentType") || null,
-      status: formData.get("status"), 
+      status: formData.get("status"),
+      scheduledDate: parseScheduledDate(formData), // NEW
     }
   });
   revalidatePath(`/clients/${clientId}`);
@@ -117,4 +126,29 @@ export async function notifyClient(clientId) {
     notified: client.users.map(u => u.email),
     pendingCount,
   };
+}
+
+// ── CALENDAR: fetch all posts for a given month for a client ──
+// Used by the team-side calendar tab
+export async function getPostsForMonth(clientId, year, month) {
+  const start = new Date(year, month, 1);
+  const end = new Date(year, month + 1, 0, 23, 59, 59);
+
+  const posts = await db.post.findMany({
+    where: {
+      clientId,
+      scheduledDate: { gte: start, lte: end },
+    },
+    select: {
+      id: true,
+      title: true,
+      scheduledDate: true,
+      targetPlatform: true,
+      contentType: true,
+      status: true,
+    },
+    orderBy: { scheduledDate: "asc" },
+  });
+
+  return posts;
 }

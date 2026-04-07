@@ -348,28 +348,129 @@
 .alertCta:hover { background: #374151; }
 
 /* ── Content Grid ── */
+/* Uses CSS subgrid-like trick: pending card is wider + taller */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1rem;
+  align-items: start; /* so cards don't stretch to match pending card height */
 }
 
+/* ── BASE CARD ── */
 .card {
-  background: var(--white); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 1.25rem;
-  display: flex; flex-direction: column; gap: 0.75rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
-  cursor: pointer; /* Makes ALL cards look clickable */
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 .card:hover { border-color: var(--border2); box-shadow: var(--shadow); }
 
-.cardPending { border-color: #fde68a; }
-.cardPending:hover {
-  border-color: #f59e0b;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px -4px rgba(245,158,11,0.2);
+/* ── PENDING CARD — bigger, bolder, attention-grabbing ── */
+.cardPending {
+  /* Span 2 columns if there's room, otherwise full width */
+  grid-column: span 2;
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 50%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 16px;
+  padding: 1.75rem;
+  gap: 1rem;
+  box-shadow: 0 4px 24px rgba(245,158,11,0.15), 0 1px 4px rgba(0,0,0,0.06);
 }
 
+.cardPending::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #d4511a, #f59e0b);
+  background-size: 200% 100%;
+  animation: shimmerBar 2.5s ease infinite;
+}
+
+@keyframes shimmerBar {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.cardPending:hover {
+  border-color: #d97706;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(245,158,11,0.22), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Pending card — larger title */
+.cardPending .cardTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #92400e;
+  line-height: 1.3;
+}
+
+/* Pending card — larger caption */
+.cardPending .cardCaption {
+  font-size: 0.82rem;
+  color: #78350f;
+  line-height: 1.6;
+}
+
+/* Pending card — platform tag bigger */
+.cardPending .platformTag {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.7rem;
+}
+
+/* Pending card — thumb bigger */
+.cardPending .cardThumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+}
+
+/* Pending card — action row */
+.cardPending .cardFooter {
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(245,158,11,0.2);
+}
+
+/* Pending card — review hint bigger */
+.cardPending .reviewHint {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* "ACTION NEEDED" eyebrow label on pending card */
+.pendingEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #92400e;
+}
+
+.pendingEyebrowDot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: ping 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Card inner elements (base) ── */
 .cardTop { display: flex; align-items: center; justify-content: space-between; }
 
 .cardThumb {
@@ -473,9 +574,7 @@
   transition: opacity 0.25s ease, transform 0.25s ease, background 0.15s;
 }
 .scrollTopBtn:hover { background: #374151; }
-.scrollTopVisible {
-  opacity: 1; pointer-events: auto; transform: translateY(0);
-}
+.scrollTopVisible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 
 /* ── Quota ── */
 .totalBadge { display: flex; flex-direction: column; align-items: flex-end; }
@@ -613,18 +712,14 @@
 .mediaPanel {
   flex: 3; background: #0c0a09;
   display: flex; align-items: center; justify-content: center; min-height: 200px;
-  position: relative; /* So the expiry badge can sit inside at the bottom */
+  position: relative;
 }
 
-/* NATIVE S3 MEDIA PLAYER */
-.mediaPlayer { 
-  width: 100%; 
-  height: 100%; 
-  max-height: 85vh;
-  object-fit: contain; 
+.mediaPlayer {
+  width: 100%; height: 100%;
+  max-height: 85vh; object-fit: contain;
 }
 
-/* FALLBACK IFRAME */
 .mediaFrame { width: 100%; height: 100%; border: none; }
 
 .noMedia {
@@ -632,25 +727,14 @@
   gap: 0.75rem; color: #64748b; font-size: 0.82rem;
 }
 
-/* The sleek 7-Day Expiry Notice over the media player */
 .expiryNotice {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  color: rgba(255, 255, 255, 0.95);
-  padding: 6px 14px;
-  border-radius: 99px;
-  font-size: 11px;
-  font-family: 'DM Sans', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 10;
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  color: rgba(255,255,255,0.95);
+  padding: 6px 14px; border-radius: 99px;
+  font-size: 11px; font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+  pointer-events: none; white-space: nowrap; z-index: 10;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
@@ -719,7 +803,7 @@
 .approveBtn:hover:not(:disabled) { background: #15803d; transform: translateY(-1px); }
 .approveBtn:disabled, .rejectBtn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* ── Read-Only State (For already approved/rejected posts) ── */
+/* ── Read-Only State ── */
 .readOnlyBox {
   padding: 1.25rem; flex: 1;
   display: flex; flex-direction: column; gap: 1rem;
@@ -740,8 +824,7 @@
   letter-spacing: 0.08em; color: var(--text3); display: block; margin-bottom: 0.4rem;
 }
 .readOnlyNote p { font-size: 0.85rem; color: var(--text1); line-height: 1.5; margin: 0; }
-.readOnlyNoteEmpty { font-size: 0.85rem; color: var(--text3); font-style: italic; margin-top: 0.5rem;}
-
+.readOnlyNoteEmpty { font-size: 0.85rem; color: var(--text3); font-style: italic; margin-top: 0.5rem; }
 
 /* ── Edit Modal ── */
 .editModal {
@@ -762,8 +845,7 @@
   text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3);
 }
 
-.fieldInput,
-.fieldTextarea {
+.fieldInput, .fieldTextarea {
   border: 1px solid var(--border); border-radius: 8px;
   padding: 0.55rem 0.75rem; font-size: 0.85rem;
   font-family: 'DM Sans', sans-serif; color: var(--text1);
@@ -771,8 +853,7 @@
   transition: border-color 0.15s, box-shadow 0.15s;
   resize: vertical; box-sizing: border-box;
 }
-.fieldInput:focus,
-.fieldTextarea:focus {
+.fieldInput:focus, .fieldTextarea:focus {
   outline: none; border-color: var(--orange2);
   box-shadow: 0 0 0 3px rgba(249,115,22,0.08);
   background: var(--white);
@@ -837,6 +918,8 @@
   .sectionTitle { font-size: 1.5rem; }
   .totalBadge { align-items: flex-start; }
 
+  /* On mobile, pending card goes full width (not 2-col) */
+  .cardPending { grid-column: span 1; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 
   .alertBanner { flex-wrap: wrap; gap: 0.5rem; }
@@ -844,35 +927,24 @@
 
   .quotaGrid { grid-template-columns: 1fr 1fr; }
 
-  /* Pagination on mobile */
   .pagination { gap: 0.35rem; margin-top: 1.75rem; padding-top: 1.5rem; flex-wrap: wrap; }
   .pageBtn { padding: 0.5rem 0.75rem; }
   .pageBtnLabel { display: none; }
   .pageNum { width: 34px; height: 34px; font-size: 0.78rem; }
 
-  /* Scroll to top button — move up above mobile browser chrome */
   .scrollTopBtn { bottom: 1.5rem; right: 1.25rem; width: 42px; height: 42px; }
 
-  /* Modals */
   .reviewModal { height: 92vh; border-radius: 12px; max-width: 100%; }
   .reviewBody { flex-direction: column; overflow-y: auto; }
   .feedbackPanel { max-width: 100%; min-width: 0; border-left: none; border-top: 1px solid var(--border); overflow-y: visible; flex: none; }
-  
-  /* Shrink media player height on mobile so form fits below */
   .mediaPanel { height: 260px; min-height: 260px; flex: none; }
   .mediaPlayer { height: 260px; max-height: 260px; }
-  
-  /* Adjust the expiry notice on mobile so it doesn't overlap controls */
   .expiryNotice { bottom: 8px; font-size: 9px; padding: 4px 10px; }
-
   .feedbackBox { flex: none; }
   .editModal { max-height: 92vh; border-radius: 12px; }
   .fieldGrid { grid-template-columns: 1fr; }
-
-  /* Sheet-style bottom modals */
   .overlay { padding: 0.5rem; align-items: flex-end; }
   .reviewModal, .editModal { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-
   .socialList { padding: 0; }
   .socialLink { max-width: 180px; font-size: 0.7rem; }
   .bioSection { padding: 1.25rem; }
@@ -889,62 +961,244 @@
 
 /* ── Logout Buttons ── */
 .logoutNavBtn {
-  background: transparent;
-  border: 1px solid transparent;
+  background: transparent; border: 1px solid transparent;
   color: var(--text3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 6px;
+  cursor: pointer; transition: all 0.15s ease;
 }
-.logoutNavBtn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fca5a5;
-}
+.logoutNavBtn:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
 .mobileLogoutBtn {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #dc2626;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.8rem 0;
-  margin-top: 0.5rem;
+  display: flex; align-items: center; width: 100%; gap: 0.4rem;
+  font-size: 0.85rem; font-weight: 600; color: #dc2626;
+  background: transparent; border: none; cursor: pointer;
+  padding: 0.8rem 0; margin-top: 0.5rem;
   font-family: 'DM Sans', sans-serif;
 }
 
 .pageFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 3rem;
-  border-top: 1px solid var(--border);
-  color: var(--text3);
-  font-size: 0.8rem;
-  margin-top: auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 3rem; border-top: 1px solid var(--border);
+  color: var(--text3); font-size: 0.8rem; margin-top: auto;
 }
 
 .footerLogoutBtn {
-  background: transparent;
-  border: none;
-  color: var(--text3);
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  text-decoration: underline;
-  transition: color 0.15s;
+  background: transparent; border: none; color: var(--text3);
+  font-size: 0.8rem; font-weight: 500; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; text-decoration: underline; transition: color 0.15s;
 }
-.footerLogoutBtn:hover {
+.footerLogoutBtn:hover { color: var(--text1); }
+/* ── QUOTA PROGRESS WIDGET (append to portal.module.css) ── */
+
+.quotaProgress {
+  margin-top: 2rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Header */
+.qpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.qpHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.qpTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+}
+
+.qpSubtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+.qpHeaderRight {
+  display: flex;
+  align-items: baseline;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.qpBigApproved {
+  font-family: 'Fraunces', serif;
+  font-size: 2.25rem;
+  font-weight: 300;
+  color: #16a34a;
+  line-height: 1;
+}
+
+.qpBigSep {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--border2);
+  margin: 0 0.1rem;
+}
+
+.qpBigTotal {
+  font-family: 'Fraunces', serif;
+  font-size: 2.25rem;
+  font-weight: 300;
+  color: var(--text3);
+  line-height: 1;
+}
+
+/* Overall progress bar */
+.qpMainBar {
+  height: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.qpMainFill {
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+  transition: width 600ms ease;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Body */
+.qpBody {
+  display: flex;
+  flex-direction: column;
+  divide-y: var(--border);
+}
+
+/* Platform block */
+.qpPlatform {
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+}
+.qpPlatform:last-child { border-bottom: none; }
+
+.qpPlatformHead {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.qpPlatformDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.qpPlatformName {
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text1);
+}
+
+.qpPlatformSummary {
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-left: auto;
+}
+
+/* Content type row */
+.qpTypeRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+.qpTypeRow:first-of-type { border-top: none; }
+
+.qpTypeLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.qpTypeLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.qpTypeStatus {
+  font-size: 0.78rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qpComplete { color: #16a34a; font-weight: 600; }
+.qpZero    { color: var(--text3); }
+.qpPartial { color: var(--text2); }
+
+.qpTypeRight {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.qpBar {
+  width: 80px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.qpBarFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 500ms ease;
+  min-width: 2px;
+}
+
+.qpFraction {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text1);
+  font-family: 'DM Sans', sans-serif;
+  min-width: 28px;
+  text-align: right;
+}
+
+.qpFractionOf {
+  font-weight: 400;
+  color: var(--text3);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .qpHeader { padding: 1rem; }
+  .qpPlatform { padding: 0.875rem 1rem; }
+  .qpBar { width: 56px; }
+  .qpTypeStatus { display: none; }
+  .qpBigApproved, .qpBigTotal { font-size: 1.75rem; }
 }

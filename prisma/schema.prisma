@@ -158,7 +158,7 @@ model Post {
 
   targetPlatform PlatformType?
   contentType    ContentType?
-
+  scheduledDate  DateTime? 
   clientId       String
   client         Client       @relation(fields: [clientId], references: [id])
   

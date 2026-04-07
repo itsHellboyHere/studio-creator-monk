@@ -1,15 +1,16 @@
+// (portal)/[clientId]/page.js
+// CHANGE: add scheduledDate to the posts select so calendar works
+
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import PortalDashboard from "./PortalDashboard";
 
-// 1. Dynamic Metadata Generation
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
   
-  // Fetch just the name for the tab title
   const client = await db.client.findUnique({
     where: { id: clientId },
     select: { name: true } 
@@ -33,7 +34,10 @@ export default async function ClientPortalPage({ params }) {
     where: { id: clientId },
     include: {
       quotas: true,
-      posts: { orderBy: { createdAt: "desc" } },
+      posts: {
+        orderBy: { createdAt: "desc" },
+        // scheduledDate is now included automatically — Prisma returns all scalar fields
+      },
     },
   });
   

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiX, FiMessageSquare, FiImage, FiClock } from "react-icons/fi";
+import { FiX, FiMessageSquare, FiImage, FiClock, FiCalendar } from "react-icons/fi";
 import FileUploader from "./FileUploader";
 import { createDeliverable, updateDeliverable } from "./actions";
 import styles from "./clientPage.module.css";
@@ -10,7 +10,6 @@ import styles from "./clientPage.module.css";
 function MediaViewer({ url }) {
   const [hasError, setHasError] = useState(false);
 
-  // 1. No URL provided at all
   if (!url) {
     return (
       <div className={styles.noMedia}>
@@ -20,7 +19,6 @@ function MediaViewer({ url }) {
     );
   }
 
-  // 2. File was deleted from S3 after 7 days
   if (hasError) {
     return (
       <div className={styles.noMedia} style={{ color: "#b45309", backgroundColor: "#fffbeb", padding: "20px" }}>
@@ -35,7 +33,6 @@ function MediaViewer({ url }) {
 
   const isVideo = url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i);
   
-  // 3. Render Video Player
   if (isVideo) {
     return (
       <video 
@@ -45,20 +42,19 @@ function MediaViewer({ url }) {
         muted 
         playsInline 
         className={styles.mediaPlayer}
-        onError={() => setHasError(true)} // Catches the 404/403 from S3
+        onError={() => setHasError(true)}
       >
         <source src={url} />
       </video>
     );
   }
   
-  // 4. Render Image Viewer
   return (
     <img 
       src={url} 
       alt="Deliverable Asset" 
       className={styles.mediaPlayer} 
-      onError={() => setHasError(true)} // Catches the 404/403 from S3
+      onError={() => setHasError(true)}
     />
   );
 }
@@ -70,6 +66,11 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
 
+  // Format scheduledDate for the date input (YYYY-MM-DD)
+  const defaultScheduledDate = post?.scheduledDate
+    ? new Date(post.scheduledDate).toISOString().split("T")[0]
+    : "";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsUploading(true);
@@ -78,7 +79,6 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
     let finalS3Url = post?.driveLink || ""; 
 
     try {
-      // 1. If a NEW file is selected, push it to S3
       if (selectedFile) {
         setUploadStatus("Generating secure link...");
         
@@ -160,7 +160,7 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
               <input name="title" defaultValue={post?.title || ""} placeholder="e.g. Testimonial Reel" required className={styles.inputField} />
             </div>
 
-            {/* THE NEW DRAG AND DROP UPLOADER */}
+            {/* THE DRAG AND DROP UPLOADER */}
             <div className={styles.inputGroup}>
               <label>Media Asset (Upload to S3)</label>
               <FileUploader 
@@ -188,6 +188,19 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
                   <option value="VIDEO_LONG">Long Form</option>
                 </select>
               </div>
+            </div>
+
+            {/* ── SCHEDULE DATE — NEW FIELD ── */}
+            <div className={styles.inputGroup}>
+              <label style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <FiCalendar size={11} /> Schedule Date <span style={{ color: "var(--muted)", fontWeight: 400, textTransform: "none", letterSpacing: 0, fontSize: "10px" }}>(optional)</span>
+              </label>
+              <input
+                name="scheduledDate"
+                type="date"
+                defaultValue={defaultScheduledDate}
+                className={styles.inputField}
+              />
             </div>
 
             <div className={styles.inputGroup}>
