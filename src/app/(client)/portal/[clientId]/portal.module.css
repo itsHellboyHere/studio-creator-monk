@@ -673,14 +673,26 @@
 
 /* ── Overlay ── */
 .overlay {
-  position: fixed; inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Use dvh (dynamic viewport height) for iOS Safari chrome */
+  height: 100dvh;
   background: rgba(15,12,9,0.55);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9999;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 1rem;
+  /* Ensure it paints above everything including iOS status bar area */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }
-
+ 
 /* ── Review Modal ── */
 .reviewModal {
   background: var(--white); width: 100%; max-width: 980px;
@@ -1400,5 +1412,29 @@
 
   .navInner {
     padding: 0 0.875rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+    /* Account for iOS bottom bar */
+    padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+  }
+ 
+  .reviewModal {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    /* Ensure modal doesn't go behind iOS home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    margin-bottom: 0;
+  }
+ 
+  .editModal {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    margin-bottom: 0;
   }
 }

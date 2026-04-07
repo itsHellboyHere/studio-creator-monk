@@ -310,9 +310,46 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
   const editOverlayRef = useRef(null);
   const contentRef     = useRef(null);
 
+// ── REPLACE THIS USEEFFECT in PortalDashboard.js ──
+// Find the one that says:
+//   document.body.style.overflow = (reviewPost || editOpen || mobileNavOpen) ? "hidden" : "";
+// Replace the entire useEffect with this:
+
   useEffect(() => {
-    document.body.style.overflow = (reviewPost || editOpen || mobileNavOpen) ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
+    if (isOpen) {
+      // Save current scroll position and freeze body in place
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.overflow = "hidden";
+      document.body.dataset.scrollY = scrollY;
+    } else {
+      // Restore scroll position when modal closes
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+      delete document.body.dataset.scrollY;
+      window.scrollTo(0, scrollY);
+    }
+    return () => {
+      // Cleanup on unmount
+      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.overflow = "";
+      if (document.body.dataset.scrollY) {
+        delete document.body.dataset.scrollY;
+        window.scrollTo(0, scrollY);
+      }
+    };
   }, [reviewPost, editOpen, mobileNavOpen]);
 
   useEffect(() => {
