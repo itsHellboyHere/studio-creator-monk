@@ -5,36 +5,160 @@ import { updateClientProfile, submitPostReview } from "./actions";
 import styles from "./portal.module.css";
 import PortalCalendar from "./PortalCalendar";
 
-function MediaViewer({ url }) {
-  const [hasError, setHasError] = useState(false);
-  if (!url) return (
-    <div className={styles.noMedia}>
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-      <span>No media attached</span>
-    </div>
-  );
-  if (hasError) return (
-    <div className={styles.noMedia} style={{ color: "#b45309", backgroundColor: "#fffbeb", padding: "20px" }}>
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
-        <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-      </svg>
-      <span style={{ color: "#78350f", fontWeight: "600", fontSize: "14px" }}>Media Expired</span>
-      <p style={{ fontSize: "11px", marginTop: "6px", maxWidth: "220px", textAlign: "center", color: "#92400e", lineHeight: "1.4", margin: "6px 0 0 0" }}>
-        For brand security, raw media assets are automatically deleted from our servers after 7 days.
-      </p>
-    </div>
-  );
-  if (url.includes("drive.google.com")) {
-    const embedUrl = url.replace(/\/view.*/, "/preview");
-    return <iframe src={embedUrl} className={styles.mediaPlayer} allow="autoplay" title="Content preview" />;
+// ── CAROUSEL MEDIA VIEWER ──
+// Handles both old single-URL posts and new mediaUrls[] carousel posts
+function MediaViewer({ post }) {
+  const [index, setIndex] = useState(0);
+  const [errors, setErrors] = useState({});
+
+  // Support both old driveLink (string) and new mediaUrls (array)
+  const urls = useMemo(() => {
+    if (post?.mediaUrls?.length) return post.mediaUrls.filter(Boolean);
+    if (post?.driveLink) return [post.driveLink]; // legacy fallback
+    return [];
+  }, [post]);
+
+  if (!urls.length) {
+    return (
+      <div className={styles.noMedia}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+        <span>No media attached</span>
+      </div>
+    );
   }
-  const isVideo = url.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i);
-  if (isVideo) return (
-    <video controls playsInline controlsList="nodownload" className={styles.mediaPlayer} onError={() => setHasError(true)}>
-      <source src={url} />
-    </video>
+
+  const url = urls[index];
+  const hasError = errors[url];
+
+  if (hasError) {
+    return (
+      <div className={styles.noMedia} style={{ color: "#b45309", backgroundColor: "#fffbeb", padding: "20px" }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span style={{ color: "#78350f", fontWeight: "600", fontSize: "14px" }}>Media Expired</span>
+        <p style={{ fontSize: "11px", marginTop: "6px", maxWidth: "220px", textAlign: "center", color: "#92400e", lineHeight: "1.4", margin: "6px 0 0 0" }}>
+          For brand security, raw media assets are automatically deleted from our servers after 7 days.
+        </p>
+      </div>
+    );
+  }
+
+  const isGDrive = url?.includes("drive.google.com");
+  const isVideo  = url?.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i);
+
+  const renderMedia = () => {
+    if (isGDrive) {
+      const embedUrl = url.replace(/\/view.*/, "/preview");
+      return <iframe src={embedUrl} className={styles.mediaPlayer} allow="autoplay" title="Content preview" />;
+    }
+    if (isVideo) {
+      return (
+        <video key={url} controls playsInline controlsList="nodownload" className={styles.mediaPlayer} onError={() => setErrors(e => ({ ...e, [url]: true }))}>
+          <source src={url} />
+        </video>
+      );
+    }
+    return <img key={url} src={url} alt={`Slide ${index + 1}`} className={styles.mediaPlayer} onError={() => setErrors(e => ({ ...e, [url]: true }))} />;
+  };
+
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0c0a09" }}>
+      {renderMedia()}
+
+      {/* Carousel controls — only shown for multi-slide posts */}
+      {urls.length > 1 && (
+        <>
+          {/* Prev arrow */}
+          <button
+            type="button"
+            onClick={() => setIndex(i => Math.max(0, i - 1))}
+            disabled={index === 0}
+            style={{
+              position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
+              width: 34, height: 34, borderRadius: "50%",
+              background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)",
+              color: "#fff", display: "grid", placeItems: "center",
+              cursor: "pointer", opacity: index === 0 ? 0.3 : 1,
+              transition: "opacity 150ms", zIndex: 10,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+
+          {/* Next arrow */}
+          <button
+            type="button"
+            onClick={() => setIndex(i => Math.min(urls.length - 1, i + 1))}
+            disabled={index === urls.length - 1}
+            style={{
+              position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+              width: 34, height: 34, borderRadius: "50%",
+              background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)",
+              color: "#fff", display: "grid", placeItems: "center",
+              cursor: "pointer", opacity: index === urls.length - 1 ? 0.3 : 1,
+              transition: "opacity 150ms", zIndex: 10,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+
+          {/* Slide counter badge */}
+          <div style={{
+            position: "absolute", top: 10, right: 10,
+            background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)",
+            color: "rgba(255,255,255,0.9)",
+            fontFamily: "'DM Sans', sans-serif", fontSize: "11px", fontWeight: 700,
+            padding: "4px 10px", borderRadius: 99, zIndex: 10,
+            display: "flex", alignItems: "center", gap: 4,
+            pointerEvents: "none",
+          }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            {index + 1} / {urls.length}
+          </div>
+
+          {/* Dot indicators */}
+          <div style={{
+            position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
+            display: "flex", gap: 5, zIndex: 10,
+          }}>
+            {urls.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIndex(i)}
+                style={{
+                  width: i === index ? 16 : 6,
+                  height: 6, borderRadius: 99,
+                  background: i === index ? "#fff" : "rgba(255,255,255,0.4)",
+                  border: "none", padding: 0, cursor: "pointer",
+                  transition: "all 200ms ease",
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Expiry notice — sits at bottom */}
+      <div className={styles.expiryNotice}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        For security, media auto-deletes 7 days after upload.
+      </div>
+    </div>
   );
-  return <img src={url} alt="Deliverable Preview" className={styles.mediaPlayer} onError={() => setHasError(true)} />;
 }
 
 // ── PLATFORM & CONTENT META ──
@@ -60,12 +184,11 @@ function QuotaProgress({ quotas, posts }) {
     return map;
   }, [posts]);
 
-  const totalPlanned  = quotas.reduce((s, q) => s + q.amount, 0);
-  const totalApproved = quotas.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
+  const totalPlanned   = quotas.reduce((s, q) => s + q.amount, 0);
+  const totalApproved  = quotas.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
   const totalRemaining = totalPlanned - totalApproved;
-  const overallPct = totalPlanned > 0 ? (totalApproved / totalPlanned) * 100 : 0;
+  const overallPct     = totalPlanned > 0 ? (totalApproved / totalPlanned) * 100 : 0;
 
-  // Group by platform
   const byPlatform = {};
   quotas.forEach(q => {
     if (!byPlatform[q.platform]) byPlatform[q.platform] = [];
@@ -74,7 +197,6 @@ function QuotaProgress({ quotas, posts }) {
 
   return (
     <div className={styles.quotaProgress}>
-      {/* Summary */}
       <div className={styles.qpHeader}>
         <div className={styles.qpHeaderLeft}>
           <span className={styles.qpTitle}>This Month&apos;s Deliverables</span>
@@ -92,23 +214,17 @@ function QuotaProgress({ quotas, posts }) {
           <span className={styles.qpBigTotal}>{totalPlanned}</span>
         </div>
       </div>
-
-      {/* Overall bar */}
       <div className={styles.qpMainBar}>
         <div className={styles.qpMainFill} style={{ width: `${overallPct}%` }} />
       </div>
-
-      {/* Per-platform + per-type rows */}
       <div className={styles.qpBody}>
         {Object.entries(byPlatform).map(([platform, rows]) => {
-          const pm = PLATFORM_META[platform] || PLATFORM_META.OTHER;
+          const pm       = PLATFORM_META[platform] || PLATFORM_META.OTHER;
           const platTotal = rows.reduce((s, q) => s + q.amount, 0);
           const platDone  = rows.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
           const platLeft  = platTotal - platDone;
-
           return (
             <div key={platform} className={styles.qpPlatform}>
-              {/* Platform label row */}
               <div className={styles.qpPlatformHead}>
                 <span className={styles.qpPlatformDot} style={{ background: pm.color }} />
                 <span className={styles.qpPlatformName}>{pm.label}</span>
@@ -118,16 +234,13 @@ function QuotaProgress({ quotas, posts }) {
                     : <span>{platDone}/{platTotal} approved · <strong>{platLeft} remaining</strong></span>}
                 </span>
               </div>
-
-              {/* Content type rows */}
               {rows.map(q => {
-                const key       = `${q.platform}__${q.contentType}`;
-                const done      = Math.min(approvedCounts[key] || 0, q.amount);
-                const left      = q.amount - done;
-                const pct       = q.amount > 0 ? (done / q.amount) * 100 : 0;
-                const label     = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
-                const complete  = left === 0;
-
+                const key      = `${q.platform}__${q.contentType}`;
+                const done     = Math.min(approvedCounts[key] || 0, q.amount);
+                const left     = q.amount - done;
+                const pct      = q.amount > 0 ? (done / q.amount) * 100 : 0;
+                const label    = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
+                const complete = left === 0;
                 return (
                   <div key={q.id} className={styles.qpTypeRow}>
                     <div className={styles.qpTypeLeft}>
@@ -142,10 +255,7 @@ function QuotaProgress({ quotas, posts }) {
                     </div>
                     <div className={styles.qpTypeRight}>
                       <div className={styles.qpBar}>
-                        <div
-                          className={styles.qpBarFill}
-                          style={{ width: `${pct}%`, background: complete ? "#16a34a" : pm.color }}
-                        />
+                        <div className={styles.qpBarFill} style={{ width: `${pct}%`, background: complete ? "#16a34a" : pm.color }} />
                       </div>
                       <span className={styles.qpFraction}>{done}<span className={styles.qpFractionOf}>/{q.amount}</span></span>
                     </div>
@@ -227,13 +337,12 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     return () => observer.disconnect();
   }, []);
 
-  const allPosts = client.posts || [];
-  const pending  = allPosts.filter(p => p.status === "PENDING_REVIEW");
-  const approved = allPosts.filter(p => p.status === "APPROVED");
-  const totalQ   = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
-
-  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
-  const pagedPosts = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
+  const allPosts     = client.posts || [];
+  const pending      = allPosts.filter(p => p.status === "PENDING_REVIEW");
+  const approved     = allPosts.filter(p => p.status === "APPROVED");
+  const totalQ       = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
+  const totalPages   = Math.ceil(allPosts.length / POSTS_PER_PAGE);
+  const pagedPosts   = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
   const goToPage = useCallback((page) => {
     setCurrentPage(page);
@@ -261,8 +370,19 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     setMobileNavOpen(false);
   };
 
+  // Helper: get thumbnail URL for a post (first mediaUrl or legacy driveLink)
+  const getThumb = (post) => {
+    if (post.mediaUrls?.length) return post.mediaUrls[0];
+    return post.driveLink || null;
+  };
+
+  // Helper: get slide count for badge
+  const getSlideCount = (post) => post.mediaUrls?.length || 1;
+
   return (
     <div className={styles.portal}>
+
+      {/* ── TOP NAV ── */}
       <nav className={styles.topNav}>
         <div className={styles.navInner}>
           <div className={styles.navLeft}>
@@ -312,6 +432,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
         </div>
       </nav>
 
+      {/* ── MOBILE NAV DRAWER ── */}
       {mobileNavOpen && (
         <div className={styles.mobileNavBackdrop} onClick={() => setMobileNavOpen(false)}>
           <div className={styles.mobileNavDrawer} onClick={e => e.stopPropagation()}>
@@ -341,6 +462,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
         </div>
       )}
 
+      {/* ── MAIN ── */}
       <main className={styles.main}>
 
         {/* ── OVERVIEW ── */}
@@ -366,10 +488,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             </button>
           )}
 
-          {/* ── QUOTA PROGRESS — only show if quotas exist ── */}
-          {client.quotas?.length > 0 && (
-            <QuotaProgress quotas={client.quotas} posts={allPosts} />
-          )}
+          {client.quotas?.length > 0 && <QuotaProgress quotas={client.quotas} posts={allPosts} />}
         </section>
 
         {/* ── CONTENT ── */}
@@ -396,19 +515,44 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             <>
               <div className={styles.grid}>
                 {pagedPosts.map(post => {
-                  const pc = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
-                  const sm = STATUS_META[post.status] || STATUS_META.DRAFT;
-                  const isPending = post.status === "PENDING_REVIEW";
+                  const pc         = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
+                  const sm         = STATUS_META[post.status] || STATUS_META.DRAFT;
+                  const isPending  = post.status === "PENDING_REVIEW";
+                  const slideCount = getSlideCount(post);
+                  const thumbUrl   = getThumb(post);
+                  const isImgThumb = thumbUrl && !thumbUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i) && !thumbUrl.includes("drive.google.com");
+
                   return (
                     <div key={post.id} className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
-                      onClick={() => setReviewPost(post)} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setReviewPost(post)}>
+                      onClick={() => setReviewPost(post)} role="button" tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && setReviewPost(post)}>
                       {isPending && <div className={styles.pendingEyebrow}><span className={styles.pendingEyebrowDot} />Action Needed — Awaiting Your Review</div>}
+
                       <div className={styles.cardTop}>
-                        <div className={styles.cardThumb} style={{ background: pc.bg }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={pc.dot} strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                        {/* Thumbnail — show actual image if available, else platform icon */}
+                        <div className={styles.cardThumb} style={{ background: pc.bg, overflow: "hidden", position: "relative" }}>
+                          {isImgThumb ? (
+                            <img src={thumbUrl} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }} />
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={pc.dot} strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                          )}
+                          {/* Carousel badge on thumb */}
+                          {slideCount > 1 && (
+                            <div style={{
+                              position: "absolute", top: 2, right: 2,
+                              background: "rgba(0,0,0,0.65)", color: "#fff",
+                              fontSize: "8px", fontWeight: 700,
+                              padding: "1px 4px", borderRadius: 4,
+                              fontFamily: "'DM Sans', sans-serif",
+                              lineHeight: 1.4,
+                            }}>
+                              {slideCount}
+                            </div>
+                          )}
                         </div>
                         <span className={styles.platformTag} style={{ background: pc.bg, color: pc.color }}>{post.targetPlatform}</span>
                       </div>
+
                       <h3 className={styles.cardTitle}>{post.title}</h3>
                       {post.caption && <p className={styles.cardCaption}>{post.caption.slice(0, 90)}…</p>}
                       <div className={styles.cardFooter}>
@@ -419,6 +563,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                   );
                 })}
               </div>
+
               {totalPages > 1 && (
                 <div className={styles.pagination}>
                   <button className={styles.pageBtn} onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
@@ -508,30 +653,48 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
       </button>
 
-      {/* ── REVIEW MODAL ── */}
+      {/* ── REVIEW MODAL — now with carousel MediaViewer ── */}
       {reviewPost && (
         <div className={styles.overlay} ref={overlayRef} onClick={(e) => e.target === overlayRef.current && (setReviewPost(null), setFeedback(""))}>
           <div className={styles.reviewModal}>
             <div className={styles.modalHead}>
-              <div><p className={styles.modalEyebrow}>{reviewPost.targetPlatform} · {reviewPost.contentType}</p><h2 className={styles.modalTitle}>{reviewPost.title}</h2></div>
+              <div>
+                <p className={styles.modalEyebrow}>
+                  {reviewPost.targetPlatform} · {reviewPost.contentType}
+                  {getSlideCount(reviewPost) > 1 && (
+                    <span style={{ marginLeft: 8, background: "rgba(212,81,26,0.1)", color: "var(--orange)", fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4, letterSpacing: "0.05em" }}>
+                      {getSlideCount(reviewPost)} SLIDES
+                    </span>
+                  )}
+                </p>
+                <h2 className={styles.modalTitle}>{reviewPost.title}</h2>
+              </div>
               <button className={styles.closeBtn} onClick={() => { setReviewPost(null); setFeedback(""); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
+
             <div className={styles.reviewBody}>
+              {/* ── LEFT: Carousel Media Viewer ── */}
               <div className={styles.mediaPanel}>
-                <MediaViewer url={reviewPost.driveLink} />
-                <div className={styles.expiryNotice}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                  For security, media auto-deletes 7 days after upload.
-                </div>
+                <MediaViewer post={reviewPost} />
               </div>
+
+              {/* ── RIGHT: Feedback panel ── */}
               <div className={styles.feedbackPanel}>
-                {reviewPost.caption && <div className={styles.captionBox}><span className={styles.captionLabel}>Proposed Caption</span><p className={styles.captionText}>{reviewPost.caption}</p></div>}
+                {reviewPost.caption && (
+                  <div className={styles.captionBox}>
+                    <span className={styles.captionLabel}>Proposed Caption</span>
+                    <p className={styles.captionText}>{reviewPost.caption}</p>
+                  </div>
+                )}
+
                 {reviewPost.status === "PENDING_REVIEW" ? (
                   <div className={styles.feedbackBox}>
                     <label className={styles.feedbackLabel}>Your Feedback</label>
-                    <textarea value={feedback} onChange={e => setFeedback(e.target.value)} placeholder="Looks great! OR Please change the music at 0:05..." className={styles.feedbackInput} rows={5} />
+                    <textarea value={feedback} onChange={e => setFeedback(e.target.value)}
+                      placeholder="Looks great! OR Please change slide 2 caption…"
+                      className={styles.feedbackInput} rows={5} />
                     <div className={styles.reviewActions}>
                       <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>Request Changes</button>
                       <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>{submitting ? "Saving…" : "✓ Approve"}</button>
@@ -540,7 +703,9 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
                 ) : (
                   <div className={styles.readOnlyBox}>
                     <div className={styles.readOnlyHeader}>
-                      <span className={styles.readOnlyStatus} style={{ color: STATUS_META[reviewPost.status].color, backgroundColor: STATUS_META[reviewPost.status].bg }}>Status: {STATUS_META[reviewPost.status].label}</span>
+                      <span className={styles.readOnlyStatus} style={{ color: STATUS_META[reviewPost.status].color, backgroundColor: STATUS_META[reviewPost.status].bg }}>
+                        Status: {STATUS_META[reviewPost.status].label}
+                      </span>
                     </div>
                     {reviewPost.clientNote
                       ? <div className={styles.readOnlyNote}><span className={styles.readOnlyNoteLabel}>Your Feedback:</span><p>{reviewPost.clientNote}</p></div>

@@ -147,15 +147,14 @@ model TeamProfile {
   updatedAt        DateTime @updatedAt
 }
 
-// 6. DELIVERABLES / POSTS
 model Post {
   id             String       @id @default(cuid())
   title          String     
-  driveLink      String     
+  mediaUrls      String[]     // Was driveLink — array, first item is thumbnail/primary
   caption        String?    
   status         PostStatus   @default(DRAFT)
   clientNote     String?    
-
+ 
   targetPlatform PlatformType?
   contentType    ContentType?
   scheduledDate  DateTime? 

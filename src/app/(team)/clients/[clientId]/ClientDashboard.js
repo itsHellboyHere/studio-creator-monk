@@ -333,7 +333,14 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                       <tbody>
                         {client.posts.map(post => (
                           <tr key={post.id}>
-                            <td className={styles.cellTitle}>{post.title}</td>
+                            <td className={styles.cellTitle}>
+                              {post.title}
+                              {post.mediaUrls?.length > 1 && (
+                                <span className={styles.carouselBadge}>
+                                  <FiGrid size={8} /> {post.mediaUrls.length}
+                                </span>
+                              )}
+                            </td>
                             <td className={styles.cellPlatform}>{post.targetPlatform} {post.contentType}</td>
                             <td>
                               <span className={`${styles.statusBadge} ${styles[post.status]}`}>

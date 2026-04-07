@@ -44,7 +44,6 @@ export async function deleteClientQuota(quotaId, clientId) {
   revalidatePath(`/clients/${clientId}`);
 }
 
-// Helper: parse scheduledDate safely
 function parseScheduledDate(formData) {
   const raw = formData.get("scheduledDate");
   if (!raw || raw === "") return null;
@@ -52,33 +51,50 @@ function parseScheduledDate(formData) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+// Parse mediaUrls from formData — stored as JSON string
+function parseMediaUrls(formData) {
+  const raw = formData.get("mediaUrls");
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    // Fallback: if single URL passed directly
+    return raw ? [raw] : [];
+  }
+}
+
 export async function createDeliverable(clientId, formData) {
+  const mediaUrls = parseMediaUrls(formData);
+
   await db.post.create({
     data: {
       clientId,
       title: formData.get("title"),
-      driveLink: formData.get("driveLink"),
+      mediaUrls,
       caption: formData.get("caption") || null,
       targetPlatform: formData.get("targetPlatform") || null,
       contentType: formData.get("contentType") || null,
       status: formData.get("status") || "DRAFT",
-      scheduledDate: parseScheduledDate(formData), // NEW
+      scheduledDate: parseScheduledDate(formData),
     }
   });
   revalidatePath(`/clients/${clientId}`);
 }
 
 export async function updateDeliverable(postId, clientId, formData) {
+  const mediaUrls = parseMediaUrls(formData);
+
   await db.post.update({
     where: { id: postId },
     data: {
       title: formData.get("title"),
-      driveLink: formData.get("driveLink"),
+      mediaUrls,
       caption: formData.get("caption") || null,
       targetPlatform: formData.get("targetPlatform") || null,
       contentType: formData.get("contentType") || null,
       status: formData.get("status"),
-      scheduledDate: parseScheduledDate(formData), // NEW
+      scheduledDate: parseScheduledDate(formData),
     }
   });
   revalidatePath(`/clients/${clientId}`);
@@ -90,10 +106,7 @@ export async function notifyClient(clientId) {
   const client = await db.client.findUnique({
     where: { id: clientId },
     include: {
-      users: {
-        where: { role: "CLIENT" },
-        select: { email: true },
-      },
+      users: { where: { role: "CLIENT" }, select: { email: true } },
       posts: {
         where: { status: "PENDING_REVIEW" },
         select: { id: true, title: true },
@@ -111,34 +124,19 @@ export async function notifyClient(clientId) {
   const emailSubject = pendingCount === 1 ? firstTitle : `${pendingCount} new deliverables`;
 
   for (const user of client.users) {
-    await sendClientNotification(
-      user.email,
-      client.name,
-      emailSubject,
-      clientId
-    );
+    await sendClientNotification(user.email, client.name, emailSubject, clientId);
   }
 
   revalidatePath(`/clients/${clientId}`);
-
-  return {
-    success: true,
-    notified: client.users.map(u => u.email),
-    pendingCount,
-  };
+  return { success: true, notified: client.users.map(u => u.email), pendingCount };
 }
 
-// ── CALENDAR: fetch all posts for a given month for a client ──
-// Used by the team-side calendar tab
 export async function getPostsForMonth(clientId, year, month) {
   const start = new Date(year, month, 1);
   const end = new Date(year, month + 1, 0, 23, 59, 59);
 
   const posts = await db.post.findMany({
-    where: {
-      clientId,
-      scheduledDate: { gte: start, lte: end },
-    },
+    where: { clientId, scheduledDate: { gte: start, lte: end } },
     select: {
       id: true,
       title: true,
@@ -146,6 +144,7 @@ export async function getPostsForMonth(clientId, year, month) {
       targetPlatform: true,
       contentType: true,
       status: true,
+      mediaUrls: true,
     },
     orderBy: { scheduledDate: "asc" },
   });
