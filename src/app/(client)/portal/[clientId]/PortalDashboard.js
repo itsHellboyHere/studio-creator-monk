@@ -6,15 +6,13 @@ import styles from "./portal.module.css";
 import PortalCalendar from "./PortalCalendar";
 
 // ── CAROUSEL MEDIA VIEWER ──
-// Handles both old single-URL posts and new mediaUrls[] carousel posts
 function MediaViewer({ post }) {
   const [index, setIndex] = useState(0);
   const [errors, setErrors] = useState({});
 
-  // Support both old driveLink (string) and new mediaUrls (array)
   const urls = useMemo(() => {
     if (post?.mediaUrls?.length) return post.mediaUrls.filter(Boolean);
-    if (post?.driveLink) return [post.driveLink]; // legacy fallback
+    if (post?.driveLink) return [post.driveLink];
     return [];
   }, [post]);
 
@@ -41,7 +39,7 @@ function MediaViewer({ post }) {
         </svg>
         <span style={{ color: "#78350f", fontWeight: "600", fontSize: "14px" }}>Media Expired</span>
         <p style={{ fontSize: "11px", marginTop: "6px", maxWidth: "220px", textAlign: "center", color: "#92400e", lineHeight: "1.4", margin: "6px 0 0 0" }}>
-          For brand security, raw media assets are automatically deleted from our servers after 7 days.
+          Assets auto-delete after 7 days for security.
         </p>
       </div>
     );
@@ -69,99 +67,39 @@ function MediaViewer({ post }) {
     <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0c0a09" }}>
       {renderMedia()}
 
-      {/* Carousel controls — only shown for multi-slide posts */}
       {urls.length > 1 && (
         <>
-          {/* Prev arrow */}
-          <button
-            type="button"
-            onClick={() => setIndex(i => Math.max(0, i - 1))}
-            disabled={index === 0}
-            style={{
-              position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)",
-              width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)",
-              color: "#fff", display: "grid", placeItems: "center",
-              cursor: "pointer", opacity: index === 0 ? 0.3 : 1,
-              transition: "opacity 150ms", zIndex: 10,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
+          <button type="button" onClick={() => setIndex(i => Math.max(0, i - 1))} disabled={index === 0}
+            style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", opacity: index === 0 ? 0.3 : 1, zIndex: 10 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
-
-          {/* Next arrow */}
-          <button
-            type="button"
-            onClick={() => setIndex(i => Math.min(urls.length - 1, i + 1))}
-            disabled={index === urls.length - 1}
-            style={{
-              position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-              width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)",
-              color: "#fff", display: "grid", placeItems: "center",
-              cursor: "pointer", opacity: index === urls.length - 1 ? 0.3 : 1,
-              transition: "opacity 150ms", zIndex: 10,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+          <button type="button" onClick={() => setIndex(i => Math.min(urls.length - 1, i + 1))} disabled={index === urls.length - 1}
+            style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", opacity: index === urls.length - 1 ? 0.3 : 1, zIndex: 10 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
-
-          {/* Slide counter badge */}
-          <div style={{
-            position: "absolute", top: 10, right: 10,
-            background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)",
-            color: "rgba(255,255,255,0.9)",
-            fontFamily: "'DM Sans', sans-serif", fontSize: "11px", fontWeight: 700,
-            padding: "4px 10px", borderRadius: 99, zIndex: 10,
-            display: "flex", alignItems: "center", gap: 4,
-            pointerEvents: "none",
-          }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            {index + 1} / {urls.length}
+          <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", color: "rgba(255,255,255,0.9)", fontFamily: "'DM Sans', sans-serif", fontSize: "11px", fontWeight: 700, padding: "4px 10px", borderRadius: 99, zIndex: 10, pointerEvents: "none" }}>
+            {index + 1}/{urls.length}
           </div>
-
-          {/* Dot indicators */}
-          <div style={{
-            position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
-            display: "flex", gap: 5, zIndex: 10,
-          }}>
+          <div style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 5, zIndex: 10 }}>
             {urls.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setIndex(i)}
-                style={{
-                  width: i === index ? 16 : 6,
-                  height: 6, borderRadius: 99,
-                  background: i === index ? "#fff" : "rgba(255,255,255,0.4)",
-                  border: "none", padding: 0, cursor: "pointer",
-                  transition: "all 200ms ease",
-                }}
-              />
+              <button key={i} type="button" onClick={() => setIndex(i)}
+                style={{ width: i === index ? 16 : 6, height: 6, borderRadius: 99, background: i === index ? "#fff" : "rgba(255,255,255,0.4)", border: "none", padding: 0, cursor: "pointer", transition: "all 200ms ease" }} />
             ))}
           </div>
         </>
       )}
 
-      {/* Expiry notice — sits at bottom */}
       <div className={styles.expiryNotice}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        For security, media auto-deletes 7 days after upload.
+        Media auto-deletes 7 days after upload.
       </div>
     </div>
   );
 }
 
-// ── PLATFORM & CONTENT META ──
+// ── META ──
 const PLATFORM_META = {
   INSTAGRAM: { label: "Instagram", color: "#ec4899", bg: "#fdf2f8" },
   FACEBOOK:  { label: "Facebook",  color: "#3b82f6", bg: "#eff6ff" },
@@ -172,7 +110,7 @@ const PLATFORM_META = {
 };
 const CONTENT_TYPE_LABELS = { REEL: "Reel", POST: "Post", STORY: "Story", VIDEO_LONG: "Long Video" };
 
-// ── QUOTA PROGRESS WIDGET ──
+// ── QUOTA PROGRESS ──
 function QuotaProgress({ quotas, posts }) {
   const approvedCounts = useMemo(() => {
     const map = {};
@@ -201,11 +139,9 @@ function QuotaProgress({ quotas, posts }) {
         <div className={styles.qpHeaderLeft}>
           <span className={styles.qpTitle}>This Month&apos;s Deliverables</span>
           <span className={styles.qpSubtitle}>
-            {totalRemaining === 0 && totalPlanned > 0
-              ? "🎉 All posts approved — month complete!"
-              : totalApproved === 0
-              ? `${totalPlanned} posts planned for this month — none approved yet`
-              : `${totalApproved} approved · ${totalRemaining} still to go this month`}
+            {totalRemaining === 0 && totalPlanned > 0 ? "🎉 All posts approved — month complete!"
+              : totalApproved === 0 ? `${totalPlanned} posts planned — none approved yet`
+              : `${totalApproved} approved · ${totalRemaining} still to go`}
           </span>
         </div>
         <div className={styles.qpHeaderRight}>
@@ -219,7 +155,7 @@ function QuotaProgress({ quotas, posts }) {
       </div>
       <div className={styles.qpBody}>
         {Object.entries(byPlatform).map(([platform, rows]) => {
-          const pm       = PLATFORM_META[platform] || PLATFORM_META.OTHER;
+          const pm = PLATFORM_META[platform] || PLATFORM_META.OTHER;
           const platTotal = rows.reduce((s, q) => s + q.amount, 0);
           const platDone  = rows.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
           const platLeft  = platTotal - platDone;
@@ -231,26 +167,24 @@ function QuotaProgress({ quotas, posts }) {
                 <span className={styles.qpPlatformSummary}>
                   {platLeft === 0
                     ? <span style={{ color: "#16a34a", fontWeight: 700 }}>All done ✓</span>
-                    : <span>{platDone}/{platTotal} approved · <strong>{platLeft} remaining</strong></span>}
+                    : <span>{platDone}/{platTotal} · <strong>{platLeft} left</strong></span>}
                 </span>
               </div>
               {rows.map(q => {
-                const key      = `${q.platform}__${q.contentType}`;
-                const done     = Math.min(approvedCounts[key] || 0, q.amount);
-                const left     = q.amount - done;
-                const pct      = q.amount > 0 ? (done / q.amount) * 100 : 0;
-                const label    = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
+                const key = `${q.platform}__${q.contentType}`;
+                const done = Math.min(approvedCounts[key] || 0, q.amount);
+                const left = q.amount - done;
+                const pct  = q.amount > 0 ? (done / q.amount) * 100 : 0;
+                const label = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
                 const complete = left === 0;
                 return (
                   <div key={q.id} className={styles.qpTypeRow}>
                     <div className={styles.qpTypeLeft}>
                       <span className={styles.qpTypeLabel} style={{ background: pm.bg, color: pm.color }}>{label}</span>
                       <span className={styles.qpTypeStatus}>
-                        {complete
-                          ? <span className={styles.qpComplete}>All {q.amount} approved ✓</span>
-                          : done === 0
-                          ? <span className={styles.qpZero}>{q.amount} posts planned — none approved yet</span>
-                          : <span className={styles.qpPartial}>{done} approved · {left} more to go</span>}
+                        {complete ? <span className={styles.qpComplete}>All {q.amount} ✓</span>
+                          : done === 0 ? <span className={styles.qpZero}>{q.amount} planned</span>
+                          : <span className={styles.qpPartial}>{done} done · {left} left</span>}
                       </span>
                     </div>
                     <div className={styles.qpTypeRight}>
@@ -272,11 +206,11 @@ function QuotaProgress({ quotas, posts }) {
 
 // ── NAV ──
 const NAV_ITEMS = [
-  { id: "overview",  label: "Overview" },
-  { id: "content",   label: "Content" },
-  { id: "calendar",  label: "Calendar" },
-  { id: "plan",      label: "Plan" },
-  { id: "profile",   label: "Profile" },
+  { id: "overview", label: "Overview" },
+  { id: "content",  label: "Content" },
+  { id: "calendar", label: "Calendar" },
+  { id: "plan",     label: "Plan" },
+  { id: "profile",  label: "Profile" },
 ];
 
 const PLATFORM_COLORS = {
@@ -289,9 +223,9 @@ const PLATFORM_COLORS = {
 };
 
 const STATUS_META = {
-  DRAFT:             { label: "Draft",           bg: "#f3f4f6", color: "#6b7280" },
-  PENDING_REVIEW:    { label: "Pending Review",  bg: "#fef9c3", color: "#854d0e" },
-  APPROVED:          { label: "Approved",        bg: "#dcfce7", color: "#166534" },
+  DRAFT:             { label: "Draft",          bg: "#f3f4f6", color: "#6b7280" },
+  PENDING_REVIEW:    { label: "Pending Review", bg: "#fef9c3", color: "#854d0e" },
+  APPROVED:          { label: "Approved",       bg: "#dcfce7", color: "#166534" },
   CHANGES_REQUESTED: { label: "Changes Needed", bg: "#fee2e2", color: "#991b1b" },
 };
 
@@ -306,32 +240,26 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [currentPage, setCurrentPage]     = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const overlayRef     = useRef(null);
-  const editOverlayRef = useRef(null);
-  const contentRef     = useRef(null);
+  const contentRef = useRef(null);
 
-// ── REPLACE THIS USEEFFECT in PortalDashboard.js ──
-// Find the one that says:
-//   document.body.style.overflow = (reviewPost || editOpen || mobileNavOpen) ? "hidden" : "";
-// Replace the entire useEffect with this:
-
-useEffect(() => {
+  // ── SCROLL LOCK — correct iOS Safari pattern ──
+  useEffect(() => {
     const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
     if (isOpen) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
+      document.body.style.top      = `-${scrollY}px`;
+      document.body.style.left     = "0";
+      document.body.style.right    = "0";
       document.body.style.overflow = "hidden";
-      document.body.dataset.scrollY = scrollY;
+      document.body.dataset.scrollY = String(scrollY);
     } else {
       const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-    
-      document.body.style.top = "";
+      // Clear top first so browser doesn't flash top
+      document.body.style.top      = "";
       document.body.style.position = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
+      document.body.style.left     = "";
+      document.body.style.right    = "";
       document.body.style.overflow = "";
       window.scrollTo({ top: scrollY, behavior: "instant" });
       delete document.body.dataset.scrollY;
@@ -339,10 +267,10 @@ useEffect(() => {
     return () => {
       if (document.body.dataset.scrollY) {
         const scrollY = parseInt(document.body.dataset.scrollY, 10);
-        document.body.style.top = "";
+        document.body.style.top      = "";
         document.body.style.position = "";
-        document.body.style.left = "";
-        document.body.style.right = "";
+        document.body.style.left     = "";
+        document.body.style.right    = "";
         document.body.style.overflow = "";
         window.scrollTo({ top: scrollY, behavior: "instant" });
         delete document.body.dataset.scrollY;
@@ -372,12 +300,12 @@ useEffect(() => {
     return () => observer.disconnect();
   }, []);
 
-  const allPosts     = client.posts || [];
-  const pending      = allPosts.filter(p => p.status === "PENDING_REVIEW");
-  const approved     = allPosts.filter(p => p.status === "APPROVED");
-  const totalQ       = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
-  const totalPages   = Math.ceil(allPosts.length / POSTS_PER_PAGE);
-  const pagedPosts   = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
+  const allPosts   = client.posts || [];
+  const pending    = allPosts.filter(p => p.status === "PENDING_REVIEW");
+  const approved   = allPosts.filter(p => p.status === "APPROVED");
+  const totalQ     = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
+  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
+  const pagedPosts = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
   const goToPage = useCallback((page) => {
     setCurrentPage(page);
@@ -398,20 +326,19 @@ useEffect(() => {
     finally { setReviewPost(null); setFeedback(""); setSubmitting(false); }
   };
 
+  const closeReview = () => { setReviewPost(null); setFeedback(""); };
+
   const scrollTo = (id) => {
-    window.location.hash = id;
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setActiveNav(id);
     setMobileNavOpen(false);
   };
 
-  // Helper: get thumbnail URL for a post (first mediaUrl or legacy driveLink)
   const getThumb = (post) => {
     if (post.mediaUrls?.length) return post.mediaUrls[0];
     return post.driveLink || null;
   };
 
-  // Helper: get slide count for badge
   const getSlideCount = (post) => post.mediaUrls?.length || 1;
 
   return (
@@ -450,14 +377,14 @@ useEffect(() => {
               ? <button className={`${styles.pendingPill} ${styles.hideMobile}`} onClick={() => scrollTo("content")}><span className={styles.pingDot} />{pending.length} awaiting review</button>
               : <span className={`${styles.allGoodPill} ${styles.hideMobile}`}>✓ All clear</span>}
             <div className={styles.hideMobile} style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginLeft: "0.5rem", paddingLeft: "0.75rem", borderLeft: "1px solid var(--border)" }}>
-              {isAdminOrTeam && <a href="/dashboard" className={styles.backLink}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>Dashboard</a>}
+              {isAdminOrTeam && <a href="/dashboard" className={styles.backLink}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Dashboard</a>}
               <button onClick={() => signOut({ callbackUrl: "/login" })} className={styles.logoutNavBtn} title="Sign Out">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
               </button>
             </div>
-            <button className={styles.hamburger} onClick={() => setMobileNavOpen(v => !v)} aria-label="Toggle navigation" aria-expanded={mobileNavOpen}>
+            <button className={styles.hamburger} onClick={() => setMobileNavOpen(v => !v)} aria-label="Toggle navigation">
               {mobileNavOpen
                 ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="7" x2="21" y2="7" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="17" x2="21" y2="17" /></svg>}
@@ -473,7 +400,9 @@ useEffect(() => {
           <div className={styles.mobileNavDrawer} onClick={e => e.stopPropagation()}>
             <div className={styles.mobileNavHeader}>
               <span className={styles.mobileNavTitle}>Navigation</span>
-              {pending.length > 0 ? <span className={styles.pendingPill} style={{ pointerEvents: "none" }}><span className={styles.pingDot} />{pending.length} pending</span> : <span className={styles.allGoodPill}>✓ All clear</span>}
+              {pending.length > 0
+                ? <span className={styles.pendingPill} style={{ pointerEvents: "none" }}><span className={styles.pingDot} />{pending.length} pending</span>
+                : <span className={styles.allGoodPill}>✓ All clear</span>}
             </div>
             <div className={styles.mobileNavLinks}>
               {NAV_ITEMS.map(item => (
@@ -487,9 +416,9 @@ useEffect(() => {
               ))}
             </div>
             <div className={styles.mobileNavFooter}>
-              {isAdminOrTeam && <a href="/dashboard" className={styles.mobileBackLink}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>Back to Dashboard</a>}
+              {isAdminOrTeam && <a href="/dashboard" className={styles.mobileBackLink}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>Back to Dashboard</a>}
               <button onClick={() => signOut({ callbackUrl: "/login" })} className={styles.mobileLogoutBtn}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 Sign Out
               </button>
             </div>
@@ -500,7 +429,7 @@ useEffect(() => {
       {/* ── MAIN ── */}
       <main className={styles.main}>
 
-        {/* ── OVERVIEW ── */}
+        {/* OVERVIEW */}
         <section id="overview" className={styles.section}>
           <div className={styles.heroGrid}>
             <div className={styles.heroText}>
@@ -516,22 +445,20 @@ useEffect(() => {
               <div className={styles.statBox}><span className={styles.statNum}>{totalQ}</span><span className={styles.statLabel}>Monthly Posts</span></div>
             </div>
           </div>
-
           {pending.length > 0 && (
             <button className={styles.mobilePendingCta} onClick={() => scrollTo("content")}>
               <span className={styles.pingDot} />{pending.length} piece{pending.length > 1 ? "s" : ""} waiting for approval — Review Now →
             </button>
           )}
-
           {client.quotas?.length > 0 && <QuotaProgress quotas={client.quotas} posts={allPosts} />}
         </section>
 
-        {/* ── CONTENT ── */}
+        {/* CONTENT */}
         <section id="content" className={styles.section} ref={contentRef}>
           <div className={styles.sectionHead}>
             <div>
               <h2 className={styles.sectionTitle}>Content Pipeline</h2>
-              <p className={styles.sectionSub}>Review and approve posts before they go live.{allPosts.length > 0 && <span className={styles.postCount}> · {allPosts.length} total post{allPosts.length !== 1 ? "s" : ""}</span>}</p>
+              <p className={styles.sectionSub}>Review and approve posts before they go live.{allPosts.length > 0 && <span className={styles.postCount}> · {allPosts.length} total</span>}</p>
             </div>
             {totalPages > 1 && <div className={styles.pageInfo}>Page {currentPage} of {totalPages}</div>}
           </div>
@@ -550,37 +477,29 @@ useEffect(() => {
             <>
               <div className={styles.grid}>
                 {pagedPosts.map(post => {
-                  const pc         = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
-                  const sm         = STATUS_META[post.status] || STATUS_META.DRAFT;
-                  const isPending  = post.status === "PENDING_REVIEW";
+                  const pc        = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
+                  const sm        = STATUS_META[post.status] || STATUS_META.DRAFT;
+                  const isPending = post.status === "PENDING_REVIEW";
                   const slideCount = getSlideCount(post);
-                  const thumbUrl   = getThumb(post);
+                  const thumbUrl  = getThumb(post);
                   const isImgThumb = thumbUrl && !thumbUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i) && !thumbUrl.includes("drive.google.com");
 
                   return (
-                    <div key={post.id} className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
-                      onClick={() => setReviewPost(post)} role="button" tabIndex={0}
+                    <div key={post.id}
+                      className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
+                      onClick={() => setReviewPost(post)}
+                      role="button" tabIndex={0}
                       onKeyDown={(e) => e.key === "Enter" && setReviewPost(post)}>
+
                       {isPending && <div className={styles.pendingEyebrow}><span className={styles.pendingEyebrowDot} />Action Needed — Awaiting Your Review</div>}
 
                       <div className={styles.cardTop}>
-                        {/* Thumbnail — show actual image if available, else platform icon */}
                         <div className={styles.cardThumb} style={{ background: pc.bg, overflow: "hidden", position: "relative" }}>
-                          {isImgThumb ? (
-                            <img src={thumbUrl} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }} />
-                          ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={pc.dot} strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-                          )}
-                          {/* Carousel badge on thumb */}
+                          {isImgThumb
+                            ? <img src={thumbUrl} alt={post.title} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }} />
+                            : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={pc.dot} strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>}
                           {slideCount > 1 && (
-                            <div style={{
-                              position: "absolute", top: 2, right: 2,
-                              background: "rgba(0,0,0,0.65)", color: "#fff",
-                              fontSize: "8px", fontWeight: 700,
-                              padding: "1px 4px", borderRadius: 4,
-                              fontFamily: "'DM Sans', sans-serif",
-                              lineHeight: 1.4,
-                            }}>
+                            <div style={{ position: "absolute", top: 2, right: 2, background: "rgba(0,0,0,0.65)", color: "#fff", fontSize: "8px", fontWeight: 700, padding: "1px 4px", borderRadius: 4, lineHeight: 1.4 }}>
                               {slideCount}
                             </div>
                           )}
@@ -602,7 +521,7 @@ useEffect(() => {
               {totalPages > 1 && (
                 <div className={styles.pagination}>
                   <button className={styles.pageBtn} onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
                     <span className={styles.pageBtnLabel}>Prev</span>
                   </button>
                   <div className={styles.pageNumbers}>
@@ -612,7 +531,7 @@ useEffect(() => {
                   </div>
                   <button className={styles.pageBtn} onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
                     <span className={styles.pageBtnLabel}>Next</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
                   </button>
                 </div>
               )}
@@ -620,7 +539,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* ── CALENDAR ── */}
+        {/* CALENDAR */}
         <section id="calendar" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Content Calendar</h2><p className={styles.sectionSub}>See what&apos;s scheduled across all platforms.</p></div>
@@ -628,7 +547,7 @@ useEffect(() => {
           <PortalCalendar posts={client.posts} />
         </section>
 
-        {/* ── PLAN ── */}
+        {/* PLAN */}
         <section id="plan" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Monthly Plan</h2><p className={styles.sectionSub}>Your agreed deliverables per platform.</p></div>
@@ -654,7 +573,7 @@ useEffect(() => {
           )}
         </section>
 
-        {/* ── PROFILE ── */}
+        {/* PROFILE */}
         <section id="profile" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Brand Profile</h2><p className={styles.sectionSub}>Your social links and brand information.</p></div>
@@ -684,38 +603,41 @@ useEffect(() => {
         </div>
       </main>
 
-      <button className={`${styles.scrollTopBtn} ${showScrollTop ? styles.scrollTopVisible : ""}`} onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Back to top">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15" /></svg>
+      {/* ── SCROLL TO TOP ── */}
+      <button className={`${styles.scrollTopBtn} ${showScrollTop ? styles.scrollTopVisible : ""}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Back to top">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="18 15 12 9 6 15" /></svg>
       </button>
 
-      {/* ── REVIEW MODAL — now with carousel MediaViewer ── */}
+      {/* ── REVIEW MODAL ── */}
       {reviewPost && (
-        <div className={styles.overlay} ref={overlayRef} onClick={(e) => e.target === overlayRef.current && (setReviewPost(null), setFeedback(""))}>
+        <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && closeReview()}>
           <div className={styles.reviewModal}>
+
+            {/* Header */}
             <div className={styles.modalHead}>
-              <div>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <p className={styles.modalEyebrow}>
                   {reviewPost.targetPlatform} · {reviewPost.contentType}
                   {getSlideCount(reviewPost) > 1 && (
-                    <span style={{ marginLeft: 8, background: "rgba(212,81,26,0.1)", color: "var(--orange)", fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4, letterSpacing: "0.05em" }}>
+                    <span style={{ marginLeft: 8, background: "rgba(212,81,26,0.1)", color: "var(--orange)", fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
                       {getSlideCount(reviewPost)} SLIDES
                     </span>
                   )}
                 </p>
                 <h2 className={styles.modalTitle}>{reviewPost.title}</h2>
               </div>
-              <button className={styles.closeBtn} onClick={() => { setReviewPost(null); setFeedback(""); }}>
+              <button className={styles.closeBtn} onClick={closeReview} aria-label="Close">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
             </div>
 
+            {/* Body */}
             <div className={styles.reviewBody}>
-              {/* ── LEFT: Carousel Media Viewer ── */}
               <div className={styles.mediaPanel}>
                 <MediaViewer post={reviewPost} />
               </div>
 
-              {/* ── RIGHT: Feedback panel ── */}
               <div className={styles.feedbackPanel}>
                 {reviewPost.caption && (
                   <div className={styles.captionBox}>
@@ -727,19 +649,27 @@ useEffect(() => {
                 {reviewPost.status === "PENDING_REVIEW" ? (
                   <div className={styles.feedbackBox}>
                     <label className={styles.feedbackLabel}>Your Feedback</label>
-                    <textarea value={feedback} onChange={e => setFeedback(e.target.value)}
-                      placeholder="Looks great! OR Please change slide 2 caption…"
-                      className={styles.feedbackInput} rows={5} />
+                    <textarea
+                      value={feedback}
+                      onChange={e => setFeedback(e.target.value)}
+                      placeholder="Looks great! OR Please change slide 2…"
+                      className={styles.feedbackInput}
+                      rows={4}
+                    />
                     <div className={styles.reviewActions}>
-                      <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>Request Changes</button>
-                      <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>{submitting ? "Saving…" : "✓ Approve"}</button>
+                      <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>
+                        Request Changes
+                      </button>
+                      <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>
+                        {submitting ? "Saving…" : "✓ Approve"}
+                      </button>
                     </div>
                   </div>
                 ) : (
                   <div className={styles.readOnlyBox}>
                     <div className={styles.readOnlyHeader}>
                       <span className={styles.readOnlyStatus} style={{ color: STATUS_META[reviewPost.status].color, backgroundColor: STATUS_META[reviewPost.status].bg }}>
-                        Status: {STATUS_META[reviewPost.status].label}
+                        {STATUS_META[reviewPost.status].label}
                       </span>
                     </div>
                     {reviewPost.clientNote
@@ -755,7 +685,7 @@ useEffect(() => {
 
       {/* ── EDIT MODAL ── */}
       {editOpen && (
-        <div className={styles.overlay} ref={editOverlayRef} onClick={(e) => e.target === editOverlayRef.current && setEditOpen(false)}>
+        <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && setEditOpen(false)}>
           <div className={styles.editModal}>
             <div className={styles.modalHead}>
               <h3 className={styles.modalTitle}>Update Brand Profile</h3>
@@ -776,7 +706,10 @@ useEffect(() => {
                   { name: "twitterXUrl", label: "Twitter / X URL", val: client.twitterXUrl },
                   { name: "otherSocialUrl", label: "Other Link", val: client.otherSocialUrl },
                 ].map(f => (
-                  <div key={f.name} className={styles.field}><span className={styles.fieldLabel}>{f.label}</span><input name={f.name} defaultValue={f.val || ""} placeholder="https://…" className={styles.fieldInput} /></div>
+                  <div key={f.name} className={styles.field}>
+                    <span className={styles.fieldLabel}>{f.label}</span>
+                    <input name={f.name} defaultValue={f.val || ""} placeholder="https://…" className={styles.fieldInput} />
+                  </div>
                 ))}
               </div>
               <div className={styles.editActions}>

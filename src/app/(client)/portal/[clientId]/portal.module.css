@@ -671,26 +671,30 @@
 
 .socialEmpty { font-size: 0.72rem; color: var(--border2); }
 
-/* ── Overlay ── */
 .overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  /* Use dvh (dynamic viewport height) for iOS Safari chrome */
-  height: 100dvh;
-  background: rgba(15,12,9,0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  width: 100%;
+  height: 100%;
+  /* dvh = dynamic viewport height — accounts for iOS browser chrome */
+  min-height: 100dvh;
+  background: rgba(15, 12, 9, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  /* Ensure it paints above everything including iOS status bar area */
+  padding: 1.25rem;
+  /* Force GPU layer — critical for iOS Safari fixed positioning */
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
+  /* Prevent overlay itself from scrolling */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: none;
 }
  
 /* ── Review Modal ── */
@@ -1438,3 +1442,128 @@
     margin-bottom: 0;
   }
 }
+
+@media (max-width: 768px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+ 
+  /* Review modal — full screen on mobile */
+  .reviewModal {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 92dvh !important;
+    max-height: 92dvh !important;
+    border-radius: 20px 20px 0 0 !important;
+    /* Safe area for iPhone notch/home bar */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    /* Animate up from bottom */
+    animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+ 
+  /* Edit modal — compact bottom sheet */
+  .editModal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh !important;
+    border-radius: 20px 20px 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+ 
+  /* Modal header — larger touch target, drag handle pill */
+  .reviewModal .modalHead,
+  .editModal .modalHead {
+    padding: 1rem 1.25rem;
+    position: relative;
+  }
+ 
+  /* Drag handle indicator */
+  .reviewModal .modalHead::before,
+  .editModal .modalHead::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    background: var(--border2);
+    border-radius: 99px;
+  }
+ 
+  /* Media panel — taller on mobile so image is visible */
+  .mediaPanel {
+    height: 280px !important;
+    min-height: 280px !important;
+    flex: none !important;
+  }
+ 
+  .mediaPlayer {
+    height: 280px !important;
+    max-height: 280px !important;
+    object-fit: contain;
+  }
+ 
+  /* Feedback panel — scrollable */
+  .feedbackPanel {
+    flex: 1 !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+ 
+  /* Review body — column layout */
+  .reviewBody {
+    flex-direction: column;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+ 
+  /* Textarea — prevent iOS zoom (font-size must be ≥16px) */
+  .feedbackInput {
+    font-size: max(16px, 0.82rem) !important;
+    min-height: 80px;
+  }
+ 
+  /* Close button — larger tap target */
+  .closeBtn {
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0;
+  }
+ 
+  /* Expiry notice smaller on mobile */
+  .expiryNotice {
+    font-size: 10px;
+    padding: 4px 10px;
+    bottom: 8px;
+  }
+}
+ 
+@keyframes sheetUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+ 
+/* ── Desktop: centered modal keeps existing style ── */
+@media (min-width: 769px) {
+  .reviewModal {
+    animation: fadeUp 0.2s ease both;
+  }
+  .editModal {
+    animation: fadeUp 0.2s ease both;
+  }
+}
+ 
