@@ -1,201 +1,14 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { signOut } from "next-auth/react";
 import { updateClientProfile, submitPostReview } from "./actions";
 import styles from "./portal.module.css";
 import PortalCalendar from "./PortalCalendar";
+import MediaViewer from "./MediaViewer";
+import QuotaProgress from "./QuotaProgress";
+import ReviewModal from "./ReviewModal";
 
-function MediaViewer({ post }) {
-  const [index, setIndex] = useState(0);
-  const [errors, setErrors] = useState({});
-
-  const urls = useMemo(() => {
-    if (post?.mediaUrls?.length) return post.mediaUrls.filter(Boolean);
-    if (post?.driveLink) return [post.driveLink];
-    return [];
-  }, [post]);
-
-  if (!urls.length) {
-    return (
-      <div className={styles.noMedia}>
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1"><polygon points="5 3 19 12 5 21 5 3" /></svg>
-        <span>No media attached</span>
-      </div>
-    );
-  }
-
-  const url = urls[index];
-  const hasError = errors[url];
-
-  if (hasError) {
-    return (
-      <div className={styles.noMedia} style={{ color: "#b45309", backgroundColor: "#fffbeb", padding: "20px" }}>
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "8px" }}>
-          <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        <span style={{ color: "#78350f", fontWeight: "600", fontSize: "14px" }}>Media Expired</span>
-        <p style={{ fontSize: "11px", marginTop: "6px", maxWidth: "220px", textAlign: "center", color: "#92400e", lineHeight: "1.4", margin: "6px 0 0 0" }}>
-          Assets auto-delete after 7 days for security.
-        </p>
-      </div>
-    );
-  }
-
-  const isGDrive = url?.includes("drive.google.com");
-  const isVideo  = url?.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i);
-
-  const renderMedia = () => {
-    if (isGDrive) {
-      const embedUrl = url.replace(/\/view.*/, "/preview");
-      return <iframe src={embedUrl} className={styles.mediaPlayer} allow="autoplay" title="Content preview" />;
-    }
-    if (isVideo) {
-      return (
-        <video key={url} controls playsInline controlsList="nodownload" className={styles.mediaPlayer} onError={() => setErrors(e => ({ ...e, [url]: true }))}>
-          <source src={url} />
-        </video>
-      );
-    }
-    return <img key={url} src={url} alt={`Slide ${index + 1}`} className={styles.mediaPlayer} onError={() => setErrors(e => ({ ...e, [url]: true }))} />;
-  };
-
-  return (
-    <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0c0a09" }}>
-      {renderMedia()}
-      {urls.length > 1 && (
-        <>
-          <button type="button" onClick={() => setIndex(i => Math.max(0, i - 1))} disabled={index === 0}
-            style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", opacity: index === 0 ? 0.3 : 1, zIndex: 10 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
-          </button>
-          <button type="button" onClick={() => setIndex(i => Math.min(urls.length - 1, i + 1))} disabled={index === urls.length - 1}
-            style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer", opacity: index === urls.length - 1 ? 0.3 : 1, zIndex: 10 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-          </button>
-          <div style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)", color: "rgba(255,255,255,0.9)", fontFamily: "'DM Sans', sans-serif", fontSize: "11px", fontWeight: 700, padding: "4px 10px", borderRadius: 99, zIndex: 10, pointerEvents: "none" }}>
-            {index + 1}/{urls.length}
-          </div>
-          <div style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 5, zIndex: 10 }}>
-            {urls.map((_, i) => (
-              <button key={i} type="button" onClick={() => setIndex(i)}
-                style={{ width: i === index ? 16 : 6, height: 6, borderRadius: 99, background: i === index ? "#fff" : "rgba(255,255,255,0.4)", border: "none", padding: 0, cursor: "pointer", transition: "all 200ms ease" }} />
-            ))}
-          </div>
-        </>
-      )}
-      <div className={styles.expiryNotice}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        Media auto-deletes 7 days after upload.
-      </div>
-    </div>
-  );
-}
-
-const PLATFORM_META = {
-  INSTAGRAM: { label: "Instagram", color: "#ec4899", bg: "#fdf2f8" },
-  FACEBOOK:  { label: "Facebook",  color: "#3b82f6", bg: "#eff6ff" },
-  YOUTUBE:   { label: "YouTube",   color: "#ef4444", bg: "#fef2f2" },
-  LINKEDIN:  { label: "LinkedIn",  color: "#6366f1", bg: "#eff6ff" },
-  TWITTER_X: { label: "Twitter/X", color: "#6b7280", bg: "#f9fafb" },
-  OTHER:     { label: "Other",     color: "#9ca3af", bg: "#f3f4f6" },
-};
-const CONTENT_TYPE_LABELS = { REEL: "Reel", POST: "Post", STORY: "Story", VIDEO_LONG: "Long Video" };
-
-function QuotaProgress({ quotas, posts }) {
-  const approvedCounts = useMemo(() => {
-    const map = {};
-    posts.forEach(p => {
-      if (p.status !== "APPROVED") return;
-      const key = `${p.targetPlatform}__${p.contentType}`;
-      map[key] = (map[key] || 0) + 1;
-    });
-    return map;
-  }, [posts]);
-
-  const totalPlanned   = quotas.reduce((s, q) => s + q.amount, 0);
-  const totalApproved  = quotas.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
-  const totalRemaining = totalPlanned - totalApproved;
-  const overallPct     = totalPlanned > 0 ? (totalApproved / totalPlanned) * 100 : 0;
-
-  const byPlatform = {};
-  quotas.forEach(q => {
-    if (!byPlatform[q.platform]) byPlatform[q.platform] = [];
-    byPlatform[q.platform].push(q);
-  });
-
-  return (
-    <div className={styles.quotaProgress}>
-      <div className={styles.qpHeader}>
-        <div className={styles.qpHeaderLeft}>
-          <span className={styles.qpTitle}>This Month&apos;s Deliverables</span>
-          <span className={styles.qpSubtitle}>
-            {totalRemaining === 0 && totalPlanned > 0 ? "🎉 All posts approved — month complete!"
-              : totalApproved === 0 ? `${totalPlanned} posts planned — none approved yet`
-              : `${totalApproved} approved · ${totalRemaining} still to go`}
-          </span>
-        </div>
-        <div className={styles.qpHeaderRight}>
-          <span className={styles.qpBigApproved}>{totalApproved}</span>
-          <span className={styles.qpBigSep}>/</span>
-          <span className={styles.qpBigTotal}>{totalPlanned}</span>
-        </div>
-      </div>
-      <div className={styles.qpMainBar}>
-        <div className={styles.qpMainFill} style={{ width: `${overallPct}%` }} />
-      </div>
-      <div className={styles.qpBody}>
-        {Object.entries(byPlatform).map(([platform, rows]) => {
-          const pm        = PLATFORM_META[platform] || PLATFORM_META.OTHER;
-          const platTotal = rows.reduce((s, q) => s + q.amount, 0);
-          const platDone  = rows.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
-          const platLeft  = platTotal - platDone;
-          return (
-            <div key={platform} className={styles.qpPlatform}>
-              <div className={styles.qpPlatformHead}>
-                <span className={styles.qpPlatformDot} style={{ background: pm.color }} />
-                <span className={styles.qpPlatformName}>{pm.label}</span>
-                <span className={styles.qpPlatformSummary}>
-                  {platLeft === 0
-                    ? <span style={{ color: "#16a34a", fontWeight: 700 }}>All done ✓</span>
-                    : <span>{platDone}/{platTotal} · <strong>{platLeft} left</strong></span>}
-                </span>
-              </div>
-              {rows.map(q => {
-                const key      = `${q.platform}__${q.contentType}`;
-                const done     = Math.min(approvedCounts[key] || 0, q.amount);
-                const left     = q.amount - done;
-                const pct      = q.amount > 0 ? (done / q.amount) * 100 : 0;
-                const label    = CONTENT_TYPE_LABELS[q.contentType] || q.contentType;
-                const complete = left === 0;
-                return (
-                  <div key={q.id} className={styles.qpTypeRow}>
-                    <div className={styles.qpTypeLeft}>
-                      <span className={styles.qpTypeLabel} style={{ background: pm.bg, color: pm.color }}>{label}</span>
-                      <span className={styles.qpTypeStatus}>
-                        {complete ? <span className={styles.qpComplete}>All {q.amount} ✓</span>
-                          : done === 0 ? <span className={styles.qpZero}>{q.amount} planned</span>
-                          : <span className={styles.qpPartial}>{done} done · {left} left</span>}
-                      </span>
-                    </div>
-                    <div className={styles.qpTypeRight}>
-                      <div className={styles.qpBar}>
-                        <div className={styles.qpBarFill} style={{ width: `${pct}%`, background: complete ? "#16a34a" : pm.color }} />
-                      </div>
-                      <span className={styles.qpFraction}>{done}<span className={styles.qpFractionOf}>/{q.amount}</span></span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
+// ── constants ──
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
   { id: "content",  label: "Content" },
@@ -233,7 +46,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentRef = useRef(null);
 
-  // ── SCROLL LOCK — iOS Safari pattern ──
+  // ── Scroll lock (iOS Safari) ──
   useEffect(() => {
     const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
     if (isOpen) {
@@ -257,11 +70,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     return () => {
       if (document.body.dataset.scrollY) {
         const scrollY = parseInt(document.body.dataset.scrollY, 10);
-        document.body.style.top      = "";
-        document.body.style.position = "";
-        document.body.style.left     = "";
-        document.body.style.right    = "";
-        document.body.style.overflow = "";
+        document.body.style.top = document.body.style.position = document.body.style.left = document.body.style.right = document.body.style.overflow = "";
         window.scrollTo({ top: scrollY, behavior: "instant" });
         delete document.body.dataset.scrollY;
       }
@@ -269,25 +78,25 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
   }, [reviewPost, editOpen, mobileNavOpen]);
 
   useEffect(() => {
-    const handler = () => { if (window.innerWidth > 768) setMobileNavOpen(false); };
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
+    const h = () => { if (window.innerWidth > 768) setMobileNavOpen(false); };
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
   }, []);
 
   useEffect(() => {
-    const handler = () => setShowScrollTop(window.scrollY > 300);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+    const h = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", h, { passive: true });
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
   useEffect(() => {
     const sections = NAV_ITEMS.map(n => document.getElementById(n.id)).filter(Boolean);
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach(entry => { if (entry.isIntersecting) setActiveNav(entry.target.id); }),
+    const obs = new IntersectionObserver(
+      (entries) => entries.forEach(e => { if (e.isIntersecting) setActiveNav(e.target.id); }),
       { rootMargin: "-30% 0px -60% 0px" }
     );
-    sections.forEach(s => observer.observe(s));
-    return () => observer.disconnect();
+    sections.forEach(s => obs.observe(s));
+    return () => obs.disconnect();
   }, []);
 
   const allPosts   = client.posts || [];
@@ -316,9 +125,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     finally { setReviewPost(null); setFeedback(""); setSubmitting(false); }
   };
 
-  const closeReview = () => { setReviewPost(null); setFeedback(""); };
-
-  // ── FIX: close drawer → wait for body unlock → then scroll ──
+  // ── scrollTo: close drawer first, then scroll after body unlock ──
   const scrollTo = useCallback((id) => {
     setMobileNavOpen(false);
     setActiveNav(id);
@@ -326,8 +133,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       requestAnimationFrame(() => {
         const el = document.getElementById(id);
         if (!el) return;
-        const top = el.getBoundingClientRect().top + window.scrollY - 70;
-        window.scrollTo({ top, behavior: "smooth" });
+        window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 70, behavior: "smooth" });
       });
     });
   }, []);
@@ -423,6 +229,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
       {/* ── MAIN ── */}
       <main className={styles.main}>
 
+        {/* OVERVIEW */}
         <section id="overview" className={styles.section}>
           <div className={styles.heroGrid}>
             <div className={styles.heroText}>
@@ -446,6 +253,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           {client.quotas?.length > 0 && <QuotaProgress quotas={client.quotas} posts={allPosts} />}
         </section>
 
+        {/* CONTENT */}
         <section id="content" className={styles.section} ref={contentRef}>
           <div className={styles.sectionHead}>
             <div>
@@ -524,6 +332,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           )}
         </section>
 
+        {/* CALENDAR */}
         <section id="calendar" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Content Calendar</h2><p className={styles.sectionSub}>See what&apos;s scheduled across all platforms.</p></div>
@@ -531,6 +340,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           <PortalCalendar posts={client.posts} />
         </section>
 
+        {/* PLAN */}
         <section id="plan" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Monthly Plan</h2><p className={styles.sectionSub}>Your agreed deliverables per platform.</p></div>
@@ -556,6 +366,7 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           )}
         </section>
 
+        {/* PROFILE */}
         <section id="profile" className={styles.section}>
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Brand Profile</h2><p className={styles.sectionSub}>Your social links and brand information.</p></div>
@@ -598,63 +409,18 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
 
       {/* ── REVIEW MODAL ── */}
       {reviewPost && (
-        <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && closeReview()}>
-          <div className={styles.reviewModal}>
-            <div className={styles.modalHead}>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <p className={styles.modalEyebrow}>
-                  {reviewPost.targetPlatform} · {reviewPost.contentType}
-                  {getSlideCount(reviewPost) > 1 && (
-                    <span style={{ marginLeft: 8, background: "rgba(212,81,26,0.1)", color: "var(--orange)", fontSize: "0.58rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
-                      {getSlideCount(reviewPost)} SLIDES
-                    </span>
-                  )}
-                </p>
-                <h2 className={styles.modalTitle}>{reviewPost.title}</h2>
-              </div>
-              <button className={styles.closeBtn} onClick={closeReview} aria-label="Close">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            </div>
-            <div className={styles.reviewBody}>
-              <div className={styles.mediaPanel}><MediaViewer post={reviewPost} /></div>
-              <div className={styles.feedbackPanel}>
-                {reviewPost.caption && (
-                  <div className={styles.captionBox}>
-                    <span className={styles.captionLabel}>Proposed Caption</span>
-                    <p className={styles.captionText}>{reviewPost.caption}</p>
-                  </div>
-                )}
-                {reviewPost.status === "PENDING_REVIEW" ? (
-                  <div className={styles.feedbackBox}>
-                    <label className={styles.feedbackLabel}>Your Feedback</label>
-                    <textarea value={feedback} onChange={e => setFeedback(e.target.value)}
-                      placeholder="Looks great! OR Please change slide 2…"
-                      className={styles.feedbackInput} rows={4} />
-                    <div className={styles.reviewActions}>
-                      <button className={styles.rejectBtn} onClick={() => handleReview("REJECT")} disabled={submitting}>Request Changes</button>
-                      <button className={styles.approveBtn} onClick={() => handleReview("APPROVE")} disabled={submitting}>{submitting ? "Saving…" : "✓ Approve"}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={styles.readOnlyBox}>
-                    <div className={styles.readOnlyHeader}>
-                      <span className={styles.readOnlyStatus} style={{ color: STATUS_META[reviewPost.status].color, backgroundColor: STATUS_META[reviewPost.status].bg }}>
-                        {STATUS_META[reviewPost.status].label}
-                      </span>
-                    </div>
-                    {reviewPost.clientNote
-                      ? <div className={styles.readOnlyNote}><span className={styles.readOnlyNoteLabel}>Your Feedback:</span><p>{reviewPost.clientNote}</p></div>
-                      : <p className={styles.readOnlyNoteEmpty}>This deliverable has been processed by your team.</p>}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReviewModal
+          post={reviewPost}
+          feedback={feedback}
+          onFeedbackChange={setFeedback}
+          onClose={() => { setReviewPost(null); setFeedback(""); }}
+          onApprove={() => handleReview("APPROVE")}
+          onReject={() => handleReview("REJECT")}
+          submitting={submitting}
+        />
       )}
 
-      {/* ── EDIT MODAL ── */}
+      {/* ── EDIT PROFILE MODAL ── */}
       {editOpen && (
         <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && setEditOpen(false)}>
           <div className={styles.editModal}>
