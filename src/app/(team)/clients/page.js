@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Building2, ExternalLink, Plus } from "lucide-react";
+import { Building2, ExternalLink, Plus, AlertCircle } from "lucide-react";
 import SearchBar from "./SearchBar";
 import BrandLogo from "./BrandLogo";
 import styles from "./clients.module.css";
@@ -15,15 +15,13 @@ export default async function ClientsPage({ searchParams }) {
   if (!session) redirect("/login");
 
   const sParams = await searchParams;
-  const query     = sParams?.search    || "";
-  const industry  = sParams?.industry  || "";
-  const minPrice  = parseFloat(sParams?.minPrice) || 0;
+  const query    = sParams?.search   || "";
+  const industry = sParams?.industry || "";
+  const minPrice = parseFloat(sParams?.minPrice) || 0;
 
-  // ── Single optimised query — no second round-trip for industries ──
   const clients = await db.client.findMany({
     where: {
       AND: [
-        // Text search across name + brandDescription
         query
           ? {
               OR: [
@@ -32,27 +30,37 @@ export default async function ClientsPage({ searchParams }) {
               ],
             }
           : {},
-        // Industry filter matches against brandDescription (no separate field)
         industry ? { brandDescription: { contains: industry, mode: "insensitive" } } : {},
-        // Package floor
         minPrice > 0 ? { packageAmount: { gte: minPrice } } : {},
       ],
     },
-    orderBy: { name: "asc" },
+    orderBy: [
+      // Clients with pending changes bubble to top
+      { posts: { _count: "desc" } },
+      { name: "asc" },
+    ],
     select: {
-      id:              true,
-      name:            true,
-      brandDescription:true,
-      logoUrl:         true,
-      brandIcon:       true,
-      packageAmount:   true,
-      startDate:       true,
+      id:               true,
+      name:             true,
+      brandDescription: true,
+      logoUrl:          true,
+      brandIcon:        true,
+      packageAmount:    true,
+      startDate:        true,
       _count: { select: { posts: true } },
+      // Pull only CHANGES_REQUESTED posts — we just need their count
+      posts: {
+        where:  { status: "CHANGES_REQUESTED" },
+        select: { id: true, title: true, updatedAt: true },
+        orderBy: { updatedAt: "desc" },
+        take: 5, // cap — we only need to show the latest few
+      },
     },
   });
 
-  // Distinct industry labels for the filter dropdown
-  // We derive them from brandDescription — short values only (≤ 40 chars)
+  // Sort: clients with CHANGES_REQUESTED float to the top
+  clients.sort((a, b) => b.posts.length - a.posts.length);
+
   const rawIndustries = await db.client.findMany({
     select:   { brandDescription: true },
     distinct: ["brandDescription"],
@@ -62,7 +70,9 @@ export default async function ClientsPage({ searchParams }) {
 
   const industries = rawIndustries
     .map((r) => r.brandDescription)
-    .filter((v) => v && v.length <= 40); // skip long bio strings
+    .filter((v) => v && v.length <= 40);
+
+  const totalPendingClients = clients.filter((c) => c.posts.length > 0).length;
 
   return (
     <div className={styles.container}>
@@ -79,6 +89,17 @@ export default async function ClientsPage({ searchParams }) {
         </Link>
       </header>
 
+      {/* ── Alert Banner — only if there are pending change requests ── */}
+      {totalPendingClients > 0 && (
+        <div className={styles.alertBanner}>
+          <AlertCircle size={16} />
+          <span>
+            <strong>{totalPendingClients} client{totalPendingClients > 1 ? "s" : ""}</strong>
+            {" "}ha{totalPendingClients > 1 ? "ve" : "s"} requested changes — review highlighted cards below.
+          </span>
+        </div>
+      )}
+
       <SearchBar industries={industries} />
 
       {/* ── Grid ── */}
@@ -90,28 +111,57 @@ export default async function ClientsPage({ searchParams }) {
           </div>
         ) : (
           clients.map((client) => {
-            const imageUrl   = client.logoUrl || client.brandIcon || null;
-            const postCount  = client._count?.posts ?? 0;
-            const startLabel = client.startDate
+            const imageUrl    = client.logoUrl || client.brandIcon || null;
+            const postCount   = client._count?.posts ?? 0;
+            const startLabel  = client.startDate
               ? new Date(client.startDate).toLocaleDateString("en-IN", {
                   month: "short",
                   year:  "numeric",
                 })
               : null;
 
-            // Show brandDescription as industry label — truncate if too long
             const industryLabel = client.brandDescription
               ? client.brandDescription.length > 35
                 ? client.brandDescription.slice(0, 35) + "…"
                 : client.brandDescription
               : "No Industry Set";
 
+            // Posts flagged as CHANGES_REQUESTED for this client
+            const changedPosts   = client.posts; // already filtered in query
+            const hasChanges     = changedPosts.length > 0;
+
             return (
-              <div key={client.id} className={styles.clientCard}>
+              <div
+                key={client.id}
+                className={`${styles.clientCard} ${hasChanges ? styles.clientCardAlert : ""}`}
+              >
+                {/* ── Changes-requested strip ── */}
+                {hasChanges && (
+                  <div className={styles.changesStrip}>
+                    <span className={styles.changesDot} />
+                    <span className={styles.changesLabel}>
+                      {changedPosts.length} change{changedPosts.length > 1 ? "s" : ""} requested
+                    </span>
+                    {/* Show up to 2 post titles */}
+                    <span className={styles.changesPostList}>
+                      {changedPosts.slice(0, 2).map((p) => (
+                        <span key={p.id} className={styles.changesPostChip}>
+                          {p.title.length > 22 ? p.title.slice(0, 22) + "…" : p.title}
+                        </span>
+                      ))}
+                      {changedPosts.length > 2 && (
+                        <span className={styles.changesPostChip}>+{changedPosts.length - 2} more</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
                 {/* Top row: logo + status */}
                 <div className={styles.cardTop}>
                   <BrandLogo name={client.name} imageUrl={imageUrl} />
-                  <div className={styles.statusPill}>Active</div>
+                  <div className={hasChanges ? styles.statusPillAlert : styles.statusPill}>
+                    {hasChanges ? "⚡ Review" : "Active"}
+                  </div>
                 </div>
 
                 {/* Brand name + industry */}
@@ -146,9 +196,9 @@ export default async function ClientsPage({ searchParams }) {
                 <div className={styles.cardFooter}>
                   <Link
                     href={`/clients/${client.id}`}
-                    className={styles.portalLink}
+                    className={`${styles.portalLink} ${hasChanges ? styles.portalLinkAlert : ""}`}
                   >
-                    Open Portal <ExternalLink size={14} />
+                    {hasChanges ? "Review Changes" : "Open Portal"} <ExternalLink size={14} />
                   </Link>
                 </div>
               </div>
