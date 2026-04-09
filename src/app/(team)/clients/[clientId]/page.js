@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ClientDashboard from "./ClientDashboard";
 
-const POSTS_PER_PAGE = 15;
+const POSTS_PER_PAGE = 2;
 
 export default async function ClientAdminPage({ params, searchParams }) {
   // Await Next.js 15+ params

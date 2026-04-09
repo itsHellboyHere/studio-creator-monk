@@ -27,7 +27,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
   const [isNavigating, setIsNavigating] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [notifyResult, setNotifyResult] = useState(null);
-  const [deletingPostId, setDeletingPostId] = useState(null); // track which post is being deleted
+  const [deletingPostId, setDeletingPostId] = useState(null);
   const [activeTab, setActiveTab] = useState("pipeline");
 
   const socialLinks = [
@@ -143,95 +143,8 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </header>
 
-        {/* ── BENTO GRID ── */}
-        <div className={styles.bento}>
-          <div className={`${styles.card} ${styles.cardFinancial}`}>
-            <div className={styles.cardLabel}><FiActivity size={12} /> Engagement</div>
-            <div className={styles.financialBlock}>
-              <div className={styles.financialRow}>
-                <span className={styles.financialMeta}>Monthly Retainer</span>
-                <span className={styles.financialBig}>₹{client.packageAmount?.toLocaleString("en-IN") ?? "0"}</span>
-              </div>
-              <div className={styles.financialDivider} />
-              <div className={styles.financialRow}>
-                <span className={styles.financialMeta}>Start Date</span>
-                <span className={styles.financialMid}>
-                  {client.startDate ? new Date(client.startDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Pending"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className={`${styles.card} ${styles.cardStats}`}>
-            <div className={styles.cardLabel}><FiTrendingUp size={12} /> Content Stats</div>
-            <div className={styles.statsGrid}>
-              <div className={styles.statBox}><span className={styles.statNum}>{totalPosts}</span><span className={styles.statDesc}>Total Posts</span></div>
-              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentGreen}`}>{approvedCount}</span><span className={styles.statDesc}>Approved</span></div>
-              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentAmber}`}>{totalPosts - approvedCount}</span><span className={styles.statDesc}>Pending</span></div>
-            </div>
-            {totalPosts > 0 && (
-              <div className={styles.progressBar}>
-                <div className={styles.progressFill} style={{ width: `${(approvedCount / totalPosts) * 100}%` }} />
-              </div>
-            )}
-          </div>
-
-          <div className={`${styles.card} ${styles.cardSocial}`}>
-            <div className={styles.cardLabelRow}>
-              <span className={styles.cardLabel}><FiGlobe size={12} /> Brand Channels</span>
-              <span className={styles.cardBadge}>{connectedCount} linked</span>
-            </div>
-            <div className={styles.socialList}>
-              {socialLinks.map(link => (
-                <div key={link.id} className={`${styles.socialRow} ${!link.url ? styles.socialDim : ""}`} style={{ "--platform-color": link.color }}>
-                  <div className={styles.socialIcon}>{link.icon}</div>
-                  <span className={styles.socialLabel}>{link.label}</span>
-                  {link.url ? (
-                    <a href={link.url.startsWith("http") ? link.url : `https://${link.url}`} target="_blank" rel="noreferrer" className={styles.socialLink}><FiExternalLink size={11} /></a>
-                  ) : <span className={styles.socialEmpty}>—</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={`${styles.card} ${styles.cardQuotas}`}>
-            <div className={styles.cardLabelRow}>
-              <span className={styles.cardLabel}><FiLayers size={12} /> Monthly Quotas</span>
-              <button className={styles.manageBtn} onClick={() => setIsQuotaModalOpen(true)}><FiGrid size={12} /> Manage</button>
-            </div>
-            {client.quotas.length > 0 ? (
-              <div className={styles.quotaList}>
-                {client.quotas.map(q => (
-                  <div key={q.id} className={styles.quotaItem}>
-                    <div className={styles.quotaLeft}>
-                      <span className={styles.quotaPlatform}>{q.platform}</span>
-                      <span className={styles.quotaType}>{q.contentType}</span>
-                    </div>
-                    <div className={styles.quotaRight}>
-                      <span className={styles.quotaNum}>{q.amount}</span>
-                      <span className={styles.quotaUnit}>/ mo</span>
-                      <button type="button"
-                        onClick={async () => { if (window.confirm("Delete this quota?")) await deleteClientQuota(q.id, client.id); }}
-                        className={styles.deleteQuotaBtn}>
-                        <FiTrash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.emptyState}>
-                <FiPackage size={28} />
-                <p>No quotas configured</p>
-                <span>Set up this client's monthly content package</span>
-                <button className={styles.setupBtn} onClick={() => setIsQuotaModalOpen(true)}><FiZap size={13} /> Set Up Plan</button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── PIPELINE / CALENDAR SECTION ── */}
-        <section className={styles.pipelineSection} style={{ marginTop: '24px' }}>
+        {/* ── PIPELINE / CALENDAR SECTION (moved above bento) ── */}
+        <section className={styles.pipelineSection}>
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
               <div className={styles.tabSwitcher}>
@@ -329,7 +242,6 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                               {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                             </td>
                             <td className={styles.tdActions}>
-                              {/* Edit button */}
                               <button
                                 onClick={() => setEditingPost(post)}
                                 className={`${styles.iconBtn} ${post.status === "CHANGES_REQUESTED" ? styles.pulseAlert : ""}`}
@@ -338,8 +250,6 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                               >
                                 <FiEdit2 size={15} />
                               </button>
-
-                              {/* Delete button */}
                               <button
                                 onClick={() => handleDeletePost(post)}
                                 className={styles.iconBtnDanger}
@@ -387,6 +297,94 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
             </div>
           )}
         </section>
+
+        {/* ── BENTO GRID (moved below pipeline) ── */}
+        <div className={styles.bento}>
+          <div className={`${styles.card} ${styles.cardFinancial}`}>
+            <div className={styles.cardLabel}><FiActivity size={12} /> Engagement</div>
+            <div className={styles.financialBlock}>
+              <div className={styles.financialRow}>
+                <span className={styles.financialMeta}>Monthly Retainer</span>
+                <span className={styles.financialBig}>₹{client.packageAmount?.toLocaleString("en-IN") ?? "0"}</span>
+              </div>
+              <div className={styles.financialDivider} />
+              <div className={styles.financialRow}>
+                <span className={styles.financialMeta}>Start Date</span>
+                <span className={styles.financialMid}>
+                  {client.startDate ? new Date(client.startDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Pending"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${styles.card} ${styles.cardStats}`}>
+            <div className={styles.cardLabel}><FiTrendingUp size={12} /> Content Stats</div>
+            <div className={styles.statsGrid}>
+              <div className={styles.statBox}><span className={styles.statNum}>{totalPosts}</span><span className={styles.statDesc}>Total Posts</span></div>
+              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentGreen}`}>{approvedCount}</span><span className={styles.statDesc}>Approved</span></div>
+              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentAmber}`}>{totalPosts - approvedCount}</span><span className={styles.statDesc}>Pending</span></div>
+            </div>
+            {totalPosts > 0 && (
+              <div className={styles.progressBar}>
+                <div className={styles.progressFill} style={{ width: `${(approvedCount / totalPosts) * 100}%` }} />
+              </div>
+            )}
+          </div>
+
+          <div className={`${styles.card} ${styles.cardSocial}`}>
+            <div className={styles.cardLabelRow}>
+              <span className={styles.cardLabel}><FiGlobe size={12} /> Brand Channels</span>
+              <span className={styles.cardBadge}>{connectedCount} linked</span>
+            </div>
+            <div className={styles.socialList}>
+              {socialLinks.map(link => (
+                <div key={link.id} className={`${styles.socialRow} ${!link.url ? styles.socialDim : ""}`} style={{ "--platform-color": link.color }}>
+                  <div className={styles.socialIcon}>{link.icon}</div>
+                  <span className={styles.socialLabel}>{link.label}</span>
+                  {link.url ? (
+                    <a href={link.url.startsWith("http") ? link.url : `https://${link.url}`} target="_blank" rel="noreferrer" className={styles.socialLink}><FiExternalLink size={11} /></a>
+                  ) : <span className={styles.socialEmpty}>—</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={`${styles.card} ${styles.cardQuotas}`}>
+            <div className={styles.cardLabelRow}>
+              <span className={styles.cardLabel}><FiLayers size={12} /> Monthly Quotas</span>
+              <button className={styles.manageBtn} onClick={() => setIsQuotaModalOpen(true)}><FiGrid size={12} /> Manage</button>
+            </div>
+            {client.quotas.length > 0 ? (
+              <div className={styles.quotaList}>
+                {client.quotas.map(q => (
+                  <div key={q.id} className={styles.quotaItem}>
+                    <div className={styles.quotaLeft}>
+                      <span className={styles.quotaPlatform}>{q.platform}</span>
+                      <span className={styles.quotaType}>{q.contentType}</span>
+                    </div>
+                    <div className={styles.quotaRight}>
+                      <span className={styles.quotaNum}>{q.amount}</span>
+                      <span className={styles.quotaUnit}>/ mo</span>
+                      <button type="button"
+                        onClick={async () => { if (window.confirm("Delete this quota?")) await deleteClientQuota(q.id, client.id); }}
+                        className={styles.deleteQuotaBtn}>
+                        <FiTrash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.emptyState}>
+                <FiPackage size={28} />
+                <p>No quotas configured</p>
+                <span>Set up this client's monthly content package</span>
+                <button className={styles.setupBtn} onClick={() => setIsQuotaModalOpen(true)}><FiZap size={13} /> Set Up Plan</button>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* ── MODALS ── */}
