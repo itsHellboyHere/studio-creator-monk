@@ -81,6 +81,8 @@ export async function createDeliverable(clientId, formData) {
 
 export async function updateDeliverable(postId, clientId, formData) {
   const mediaUrls = parseMediaUrls(formData);
+  const newStatus = formData.get("status");
+
   await db.post.update({
     where: { id: postId },
     data: {
@@ -89,8 +91,9 @@ export async function updateDeliverable(postId, clientId, formData) {
       caption: formData.get("caption") || null,
       targetPlatform: formData.get("targetPlatform") || null,
       contentType: formData.get("contentType") || null,
-      status: formData.get("status"),
+      status: newStatus,
       scheduledDate: parseScheduledDate(formData),
+      approvedAt: newStatus === "APPROVED" ? new Date() : null,
     }
   });
   revalidatePath(`/clients/${clientId}`);

@@ -212,7 +212,8 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                           <th>Platform</th>
                           <th>Status</th>
                           <th>Scheduled</th>
-                          <th>Date Added</th>
+                          <th>Added</th>
+                          <th>Approved</th>
                           <th className={styles.thRight}>Actions</th>
                         </tr>
                       </thead>
@@ -235,11 +236,28 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                             </td>
                             <td className={styles.cellDate}>
                               {post.scheduledDate
-                                ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
+                                ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })
                                 : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>}
                             </td>
                             <td className={styles.cellDate}>
-                              {new Date(post.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                              {new Date(post.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })}
+                            </td>
+                            <td className={styles.cellDate}>
+                              {post.approvedAt
+                                ? <>
+                                  <span className={styles.dateMain}>
+                                    {new Date(post.approvedAt).toLocaleDateString('en-IN', {
+                                      timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short'
+                                    })}
+                                  </span>
+                                  <span className={styles.dateTime}>
+                                    {new Date(post.approvedAt).toLocaleTimeString('en-IN', {
+                                      timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
+                                    })}
+                                  </span>
+                                </>
+                                : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>
+                              }
                             </td>
                             <td className={styles.tdActions}>
                               <button
