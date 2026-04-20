@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { requestFestivePost, cancelFestiveRequest } from "./actions";
-import styles from "../[clientId]/fesivecalendar.module.css";
+import styles from "../[clientId]/fesitveCalendar.module.css"
 
 const PLATFORM_COLORS = {
   INSTAGRAM: { bg: "#fdf2f8", color: "#9d174d", dot: "#ec4899" },
