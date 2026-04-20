@@ -156,3 +156,10 @@ export async function getPostsForMonth(clientId, year, month) {
 
   return posts;
 }
+export async function updateFestiveRequestStatus(requestId, clientId, newStatus) {
+  await db.festivePostRequest.update({
+    where: { id: requestId },
+    data: { status: newStatus },
+  });
+  revalidatePath(`/clients/${clientId}`);
+}

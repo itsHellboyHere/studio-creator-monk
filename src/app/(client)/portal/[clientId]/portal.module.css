@@ -1567,3 +1567,28 @@
   }
 }
  
+/* ── Festive Banner ── */
+.festiveBanner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 100%);
+  border: 1px solid #fed7aa; border-radius: 12px;
+  flex-wrap: wrap;
+}
+.festiveBannerLeft { display: flex; align-items: center; gap: 0.875rem; flex: 1; min-width: 0; }
+.festiveBannerEmoji { font-size: 2rem; flex-shrink: 0; }
+.festiveBannerTitle { font-size: 0.875rem; font-weight: 700; color: #92400e; margin: 0 0 0.2rem; }
+.festiveBannerSub { font-size: 0.78rem; color: #78350f; margin: 0; line-height: 1.4; }
+.festiveBannerCta {
+  background: var(--orange); color: white; border: none;
+  padding: 0.6rem 1.25rem; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.festiveBannerCta:hover { background: #b8440f; }
+
+@media (max-width: 768px) {
+  .festiveBanner { flex-direction: column; align-items: flex-start; }
+  .festiveBannerCta { width: 100%; text-align: center; }
+}

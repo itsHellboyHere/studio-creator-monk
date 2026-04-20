@@ -4,60 +4,68 @@ import ClientDashboard from "./ClientDashboard";
 
 const POSTS_PER_PAGE = 15;
 
+async function fetchIndianHolidays(year, month) {
+  try {
+    const res = await fetch(
+      `https://calendarific.com/api/v2/holidays?api_key=${process.env.CALENDARIFIC_API_KEY}&country=IN&year=${year}&month=${month}&type=national,religious,observance`,
+      { next: { revalidate: 86400 } }
+    );
+    const data = await res.json();
+    return data?.response?.holidays || [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function ClientAdminPage({ params, searchParams }) {
-  // Await Next.js 15+ params
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
-  
+
   const clientId = resolvedParams.clientId;
-  
-  // Safely parse the current page from the URL (default to 1)
   const currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || "1", 10));
 
-  // 1. Get the total count of posts (Needed to calculate total pages)
-  const totalPosts = await db.post.count({
-    where: { clientId }
-  });
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
 
-  // 2. Fetch the client, quotas, and ONLY the posts for the current page
-  const client = await db.client.findUnique({
-    where: { id: clientId },
-    include: { 
-      quotas: true,
-      posts: {
-        take: POSTS_PER_PAGE,
-        skip: (currentPage - 1) * POSTS_PER_PAGE,
-        orderBy: { createdAt: 'desc' }
-      } 
-    }
-  });
+  const [totalPosts, client, approvedCount, pendingCount, currentHolidays, nextHolidays] = await Promise.all([
+    db.post.count({ where: { clientId } }),
+    db.client.findUnique({
+      where: { id: clientId },
+      include: {
+        quotas: true,
+        posts: {
+          take: POSTS_PER_PAGE,
+          skip: (currentPage - 1) * POSTS_PER_PAGE,
+          orderBy: { createdAt: "desc" },
+        },
+        festiveRequests: {
+          orderBy: { festivalDate: "asc" },
+        },
+      },
+    }),
+    db.post.count({ where: { clientId, status: "APPROVED" } }),
+    db.post.count({ where: { clientId, status: "PENDING_REVIEW" } }),
+    fetchIndianHolidays(currentYear, currentMonth),
+    fetchIndianHolidays(
+      currentMonth === 12 ? currentYear + 1 : currentYear,
+      currentMonth === 12 ? 1 : currentMonth + 1
+    ),
+  ]);
 
   if (!client) return notFound();
 
-  // 3. We also need to know the total approved posts for the KPI cards.
-  const approvedCount = await db.post.count({
-    where: { 
-      clientId, 
-      status: "APPROVED" 
-    }
-  });
-
-  // 4. NEW: Get exact count of posts waiting for client review to fix the Notification bug
-  const pendingCount = await db.post.count({
-    where: { 
-      clientId, 
-      status: "PENDING_REVIEW" 
-    }
-  });
+  const holidays = [...currentHolidays, ...nextHolidays];
 
   return (
-    <ClientDashboard 
-      client={client} 
-      totalPosts={totalPosts} 
+    <ClientDashboard
+      client={client}
+      totalPosts={totalPosts}
       approvedCount={approvedCount}
-      pendingCount={pendingCount} 
+      pendingCount={pendingCount}
       currentPage={currentPage}
       postsPerPage={POSTS_PER_PAGE}
+      holidays={holidays}
     />
   );
 }

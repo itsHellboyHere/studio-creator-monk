@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback ,useMemo} from "react";
 import { signOut } from "next-auth/react";
 import { updateClientProfile, submitPostReview } from "./actions";
 import styles from "./portal.module.css";
@@ -7,42 +7,43 @@ import PortalCalendar from "./PortalCalendar";
 import MediaViewer from "./MediaViewer";
 import QuotaProgress from "./QuotaProgress";
 import ReviewModal from "./ReviewModal";
+import FestiveCalendar from "./FestiveCaledar";
 
 // ── constants ──
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
-  { id: "content",  label: "Content" },
+  { id: "content", label: "Content" },
   { id: "calendar", label: "Calendar" },
-  { id: "plan",     label: "Plan" },
-  { id: "profile",  label: "Profile" },
+  { id: "plan", label: "Plan" },
+  { id: "profile", label: "Profile" },
 ];
 
 const PLATFORM_COLORS = {
   INSTAGRAM: { bg: "#fdf2f8", color: "#9d174d", dot: "#ec4899" },
-  FACEBOOK:  { bg: "#eff6ff", color: "#1d4ed8", dot: "#3b82f6" },
-  YOUTUBE:   { bg: "#fef2f2", color: "#b91c1c", dot: "#ef4444" },
-  LINKEDIN:  { bg: "#eff6ff", color: "#1e40af", dot: "#6366f1" },
+  FACEBOOK: { bg: "#eff6ff", color: "#1d4ed8", dot: "#3b82f6" },
+  YOUTUBE: { bg: "#fef2f2", color: "#b91c1c", dot: "#ef4444" },
+  LINKEDIN: { bg: "#eff6ff", color: "#1e40af", dot: "#6366f1" },
   TWITTER_X: { bg: "#f9fafb", color: "#111827", dot: "#6b7280" },
-  OTHER:     { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
+  OTHER: { bg: "#f3f4f6", color: "#374151", dot: "#9ca3af" },
 };
 
 const STATUS_META = {
-  DRAFT:             { label: "Draft",          bg: "#f3f4f6", color: "#6b7280" },
-  PENDING_REVIEW:    { label: "Pending Review", bg: "#fef9c3", color: "#854d0e" },
-  APPROVED:          { label: "Approved",       bg: "#dcfce7", color: "#166534" },
+  DRAFT: { label: "Draft", bg: "#f3f4f6", color: "#6b7280" },
+  PENDING_REVIEW: { label: "Pending Review", bg: "#fef9c3", color: "#854d0e" },
+  APPROVED: { label: "Approved", bg: "#dcfce7", color: "#166534" },
   CHANGES_REQUESTED: { label: "Changes Needed", bg: "#fee2e2", color: "#991b1b" },
 };
 
 const POSTS_PER_PAGE = 9;
 
-export default function PortalDashboard({ client, isAdminOrTeam }) {
-  const [activeNav, setActiveNav]         = useState("overview");
-  const [reviewPost, setReviewPost]       = useState(null);
-  const [editOpen, setEditOpen]           = useState(false);
-  const [feedback, setFeedback]           = useState("");
-  const [submitting, setSubmitting]       = useState(false);
+export default function PortalDashboard({ client, isAdminOrTeam, holidays, festiveRequests }) {
+  const [activeNav, setActiveNav] = useState("overview");
+  const [reviewPost, setReviewPost] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [currentPage, setCurrentPage]     = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentRef = useRef(null);
 
@@ -52,17 +53,17 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     if (isOpen) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
-      document.body.style.top      = `-${scrollY}px`;
-      document.body.style.left     = "0";
-      document.body.style.right    = "0";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
       document.body.style.overflow = "hidden";
       document.body.dataset.scrollY = String(scrollY);
     } else {
       const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
-      document.body.style.top      = "";
+      document.body.style.top = "";
       document.body.style.position = "";
-      document.body.style.left     = "";
-      document.body.style.right    = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
       document.body.style.overflow = "";
       window.scrollTo({ top: scrollY, behavior: "instant" });
       delete document.body.dataset.scrollY;
@@ -99,10 +100,10 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     return () => obs.disconnect();
   }, []);
 
-  const allPosts   = client.posts || [];
-  const pending    = allPosts.filter(p => p.status === "PENDING_REVIEW");
-  const approved   = allPosts.filter(p => p.status === "APPROVED");
-  const totalQ     = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
+  const allPosts = client.posts || [];
+  const pending = allPosts.filter(p => p.status === "PENDING_REVIEW");
+  const approved = allPosts.filter(p => p.status === "APPROVED");
+  const totalQ = client.quotas?.reduce((s, q) => s + q.amount, 0) || 0;
   const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
   const pagedPosts = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
@@ -138,8 +139,24 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
     });
   }, []);
 
-  const getThumb      = (post) => post.mediaUrls?.length ? post.mediaUrls[0] : (post.driveLink || null);
+  const getThumb = (post) => post.mediaUrls?.length ? post.mediaUrls[0] : (post.driveLink || null);
   const getSlideCount = (post) => post.mediaUrls?.length || 1;
+  // Upcoming festivals in next 14 days that haven't been requested yet
+  const unrequestedUpcoming = useMemo(() => {
+    const requestedKeys = new Set(
+      (client.festiveRequests || []).map(r =>
+        `${new Date(r.festivalDate).toISOString().slice(0, 10)}__${r.festivalName}`
+      )
+    );
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + 14);
+    return (holidays || []).filter(h => {
+      const d = new Date(h.date?.iso);
+      const key = `${h.date?.iso?.slice(0, 10)}__${h.name}`;
+      return d >= new Date() && d <= cutoff && !requestedKeys.has(key);
+    }).slice(0, 3);
+  }, [holidays, client.festiveRequests]);
+
 
   return (
     <div className={styles.portal}>
@@ -250,6 +267,26 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
               <span className={styles.pingDot} />{pending.length} piece{pending.length > 1 ? "s" : ""} waiting for approval — Review Now →
             </button>
           )}
+          {unrequestedUpcoming.length > 0 && (
+            <div className={styles.festiveBanner}>
+              <div className={styles.festiveBannerLeft}>
+                <span className={styles.festiveBannerEmoji}>🪔</span>
+                <div>
+                  <p className={styles.festiveBannerTitle}>
+                    {unrequestedUpcoming.length === 1
+                      ? `${unrequestedUpcoming[0].name} is coming up`
+                      : `${unrequestedUpcoming.length} festivals coming up`}
+                  </p>
+                  <p className={styles.festiveBannerSub}>
+                    {unrequestedUpcoming.map(h => h.name).join(", ")} — do you want posts for these?
+                  </p>
+                </div>
+              </div>
+              <button className={styles.festiveBannerCta} onClick={() => scrollTo("calendar")}>
+                Select Now →
+              </button>
+            </div>
+          )}
           {client.quotas?.length > 0 && <QuotaProgress quotas={client.quotas} posts={allPosts} />}
         </section>
 
@@ -277,11 +314,11 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             <>
               <div className={styles.grid}>
                 {pagedPosts.map(post => {
-                  const pc         = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
-                  const sm         = STATUS_META[post.status] || STATUS_META.DRAFT;
-                  const isPending  = post.status === "PENDING_REVIEW";
+                  const pc = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
+                  const sm = STATUS_META[post.status] || STATUS_META.DRAFT;
+                  const isPending = post.status === "PENDING_REVIEW";
                   const slideCount = getSlideCount(post);
-                  const thumbUrl   = getThumb(post);
+                  const thumbUrl = getThumb(post);
                   const isImgThumb = thumbUrl && !thumbUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i) && !thumbUrl.includes("drive.google.com");
                   return (
                     <div key={post.id} className={`${styles.card} ${isPending ? styles.cardPending : ""}`}
@@ -337,7 +374,12 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
           <div className={styles.sectionHead}>
             <div><h2 className={styles.sectionTitle}>Content Calendar</h2><p className={styles.sectionSub}>See what&apos;s scheduled across all platforms.</p></div>
           </div>
-          <PortalCalendar posts={client.posts} />
+          <FestiveCalendar
+  posts={client.posts}
+  holidays={holidays || []}
+  festiveRequests={client.festiveRequests || []}
+  clientId={client.id}
+/>
         </section>
 
         {/* PLAN */}
@@ -376,14 +418,14 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
             {client.brandDescription && <div className={styles.bioSection}><span className={styles.bioLabel}>About</span><p className={styles.bioText}>{client.brandDescription}</p></div>}
             <div className={styles.socialList}>
               {[
-                { label: "Website",     val: client.websiteUrl },
-                { label: "Instagram",   val: client.instagramUrl },
-                { label: "Facebook",    val: client.facebookUrl },
-                { label: "YouTube",     val: client.youtubeUrl },
-                { label: "LinkedIn",    val: client.linkedinUrl },
-                { label: "WhatsApp",    val: client.whatsappNumber },
+                { label: "Website", val: client.websiteUrl },
+                { label: "Instagram", val: client.instagramUrl },
+                { label: "Facebook", val: client.facebookUrl },
+                { label: "YouTube", val: client.youtubeUrl },
+                { label: "LinkedIn", val: client.linkedinUrl },
+                { label: "WhatsApp", val: client.whatsappNumber },
                 { label: "Twitter / X", val: client.twitterXUrl },
-                { label: "Other",       val: client.otherSocialUrl },
+                { label: "Other", val: client.otherSocialUrl },
               ].map(s => (
                 <div key={s.label} className={styles.socialRow}>
                   <span className={styles.socialLabel}>{s.label}</span>
@@ -434,14 +476,14 @@ export default function PortalDashboard({ client, isAdminOrTeam }) {
               <div className={styles.field}><span className={styles.fieldLabel}>Brand Bio</span><textarea name="brandDescription" defaultValue={client.brandDescription || ""} rows={3} placeholder="Describe your brand…" className={styles.fieldTextarea} /></div>
               <div className={styles.fieldGrid}>
                 {[
-                  { name: "websiteUrl",     label: "Website URL",     val: client.websiteUrl },
-                  { name: "whatsappNumber", label: "WhatsApp",        val: client.whatsappNumber },
-                  { name: "instagramUrl",   label: "Instagram URL",   val: client.instagramUrl },
-                  { name: "facebookUrl",    label: "Facebook URL",    val: client.facebookUrl },
-                  { name: "youtubeUrl",     label: "YouTube URL",     val: client.youtubeUrl },
-                  { name: "linkedinUrl",    label: "LinkedIn URL",    val: client.linkedinUrl },
-                  { name: "twitterXUrl",    label: "Twitter / X URL", val: client.twitterXUrl },
-                  { name: "otherSocialUrl", label: "Other Link",      val: client.otherSocialUrl },
+                  { name: "websiteUrl", label: "Website URL", val: client.websiteUrl },
+                  { name: "whatsappNumber", label: "WhatsApp", val: client.whatsappNumber },
+                  { name: "instagramUrl", label: "Instagram URL", val: client.instagramUrl },
+                  { name: "facebookUrl", label: "Facebook URL", val: client.facebookUrl },
+                  { name: "youtubeUrl", label: "YouTube URL", val: client.youtubeUrl },
+                  { name: "linkedinUrl", label: "LinkedIn URL", val: client.linkedinUrl },
+                  { name: "twitterXUrl", label: "Twitter / X URL", val: client.twitterXUrl },
+                  { name: "otherSocialUrl", label: "Other Link", val: client.otherSocialUrl },
                 ].map(f => (
                   <div key={f.name} className={styles.field}>
                     <span className={styles.fieldLabel}>{f.label}</span>

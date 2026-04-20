@@ -20,12 +20,46 @@ export async function updateClientProfile(clientId, formData) {
   revalidatePath(`/portal/${clientId}`);
 }
 
+
 export async function submitPostReview(postId, clientId, action, feedback) {
+  const newStatus = action === "APPROVE" ? "APPROVED" : "CHANGES_REQUESTED";
   await db.post.update({
     where: { id: postId },
     data: {
-      status:     action === "APPROVE" ? "APPROVED" : "CHANGES_REQUESTED",
+      status:     newStatus,
       clientNote: feedback || null,
+      approvedAt: newStatus === "APPROVED" ? new Date() : null,
+    },
+  });
+  revalidatePath(`/portal/${clientId}`);
+}
+
+export async function requestFestivePost(clientId, festivalName, festivalDate) {
+  await db.festivePostRequest.upsert({
+    where: {
+      clientId_festivalDate_festivalName: {
+        clientId,
+        festivalDate: new Date(festivalDate),
+        festivalName,
+      },
+    },
+    update: { status: "PENDING" },
+    create: {
+      clientId,
+      festivalName,
+      festivalDate: new Date(festivalDate),
+      status: "PENDING",
+    },
+  });
+  revalidatePath(`/portal/${clientId}`);
+}
+
+export async function cancelFestiveRequest(clientId, festivalName, festivalDate) {
+  await db.festivePostRequest.deleteMany({
+    where: {
+      clientId,
+      festivalName,
+      festivalDate: new Date(festivalDate),
     },
   });
   revalidatePath(`/portal/${clientId}`);

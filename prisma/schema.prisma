@@ -86,7 +86,7 @@ model Client {
   users            User[]   
   posts            Post[]   
   quotas           ClientMonthlyQuota[] 
-
+  festiveRequests FestivePostRequest[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt 
 }
@@ -164,4 +164,23 @@ model Post {
   
   createdAt      DateTime     @default(now()) 
   updatedAt      DateTime     @updatedAt
+}
+enum FestiveRequestStatus {
+  PENDING
+  ACKNOWLEDGED
+  IN_PROGRESS
+  DONE
+}
+
+model FestivePostRequest {
+  id           String               @id @default(cuid())
+  clientId     String
+  client       Client               @relation(fields: [clientId], references: [id])
+  festivalName String
+  festivalDate DateTime
+  status       FestiveRequestStatus @default(PENDING)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@unique([clientId, festivalDate, festivalName])
 }

@@ -557,3 +557,43 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+/* ── FESTIVE REQUESTS CARD ── */
+.cardFestive { grid-column: span 2; animation-delay: 220ms; }
+
+.festiveList { display: flex; flex-direction: column; gap: 6px; }
+
+.festiveItem {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px;
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: var(--r-sm); transition: border-color 160ms;
+  gap: 12px;
+}
+.festiveItem:hover { border-color: rgba(217,119,6,0.25); }
+
+.festiveItemLeft { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+.festiveName {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.festiveDate {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.festiveStatusBtn {
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 4px 10px; border-radius: 99px;
+  cursor: pointer; flex-shrink: 0;
+  transition: opacity 160ms, transform 160ms;
+}
+.festiveStatusBtn:hover:not(:disabled) { opacity: 0.8; transform: scale(1.03); }
+.festiveStatusBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .cardFestive { grid-column: span 1; }
+  .festiveItem { flex-wrap: wrap; gap: 8px; }
+}
