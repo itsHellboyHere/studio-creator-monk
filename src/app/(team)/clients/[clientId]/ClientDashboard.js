@@ -250,7 +250,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                                       timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short'
                                     })}
                                   </span>
-                                  <span className={styles.dateTime}>
+                                  <span className={styles.dateTime} suppressHydrationWarning>
                                     {new Date(post.approvedAt).toLocaleTimeString('en-IN', {
                                       timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
                                     })}
@@ -402,45 +402,45 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
             )}
           </div>
           {/* ── FESTIVE REQUESTS CARD ── */}
-<div className={`${styles.card} ${styles.cardFestive}`}>
-  <div className={styles.cardLabelRow}>
-    <span className={styles.cardLabel}>
-      <span>🪔</span> Festive Post Requests
-    </span>
-    {client.festiveRequests?.filter(r => r.status === "PENDING").length > 0 && (
-      <span className={styles.cardBadge} style={{ background: "rgba(217,119,6,0.1)", border: "1px solid rgba(217,119,6,0.25)", color: "#b45309" }}>
-        {client.festiveRequests.filter(r => r.status === "PENDING").length} pending
-      </span>
-    )}
-  </div>
-
-  {!client.festiveRequests?.length ? (
-    <div className={styles.emptyState}>
-      <span style={{ fontSize: 28 }}>🪔</span>
-      <p>No festive requests yet</p>
-      <span>Client hasn't requested any festival posts</span>
-    </div>
-  ) : (
-    <div className={styles.festiveList}>
-      {client.festiveRequests.map(r => (
-        <div key={r.id} className={styles.festiveItem}>
-          <div className={styles.festiveItemLeft}>
-            <span className={styles.festiveName}>{r.festivalName}</span>
-            <span className={styles.festiveDate}>
-              {new Date(r.festivalDate).toLocaleDateString("en-IN", {
-                timeZone: "Asia/Kolkata",
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </span>
+          <div className={`${styles.card} ${styles.cardFestive}`}>
+            <div className={styles.cardLabelRow}>
+              <span className={styles.cardLabel}>
+                <span>🪔</span> Festive Post Requests
+              </span>
+              {client.festiveRequests?.filter(r => r.status === "PENDING").length > 0 && (
+                <span className={styles.cardBadge} style={{ background: "rgba(217,119,6,0.1)", border: "1px solid rgba(217,119,6,0.25)", color: "#b45309" }}>
+                  {client.festiveRequests.filter(r => r.status === "PENDING").length} pending
+                </span>
+              )}
+            </div>
+              
+            {!client.festiveRequests?.length ? (
+              <div className={styles.emptyState}>
+                <span style={{ fontSize: 28 }}>🪔</span>
+                <p>No festive requests yet</p>
+                <span>Client hasn't requested any festival posts</span>
+              </div>
+            ) : (
+              <div className={styles.festiveList}>
+                {client.festiveRequests.map(r => (
+                  <div key={r.id} className={styles.festiveItem}>
+                    <div className={styles.festiveItemLeft}>
+                      <span className={styles.festiveName}>{r.festivalName}</span>
+                      <span className={styles.festiveDate}>
+                        {new Date(r.festivalDate).toLocaleDateString("en-IN", {
+                          timeZone: "Asia/Kolkata",
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    <FestiveStatusBadge requestId={r.id} clientId={client.id} currentStatus={r.status} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <FestiveStatusBadge requestId={r.id} clientId={client.id} currentStatus={r.status} />
-        </div>
-      ))}
-    </div>
-  )}
-</div>
         </div>
 
       </div>
@@ -483,7 +483,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </div>
       )}
-
+  
       {isQuotaModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -510,7 +510,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}><FiPlus /> Add Quota</button></div>
             </form>
           </div>
+          
         </div>
+        
       )}
     </div>
   );
@@ -525,10 +527,10 @@ function FestiveStatusBadge({ requestId, clientId, currentStatus }) {
 
   const STATUS_OPTIONS = ["PENDING", "ACKNOWLEDGED", "IN_PROGRESS", "DONE"];
   const STATUS_STYLES = {
-    PENDING:      { bg: "rgba(180,83,9,0.1)",   color: "#b45309",  border: "rgba(180,83,9,0.2)",   label: "Pending" },
-    ACKNOWLEDGED: { bg: "rgba(59,130,246,0.1)",  color: "#1d4ed8",  border: "rgba(59,130,246,0.2)", label: "Acknowledged" },
-    IN_PROGRESS:  { bg: "rgba(124,58,237,0.1)",  color: "#7c3aed",  border: "rgba(124,58,237,0.2)", label: "In Progress" },
-    DONE:         { bg: "rgba(22,163,74,0.1)",   color: "#16a34a",  border: "rgba(22,163,74,0.2)",  label: "Done" },
+    PENDING: { bg: "rgba(180,83,9,0.1)", color: "#b45309", border: "rgba(180,83,9,0.2)", label: "Pending" },
+    ACKNOWLEDGED: { bg: "rgba(59,130,246,0.1)", color: "#1d4ed8", border: "rgba(59,130,246,0.2)", label: "Acknowledged" },
+    IN_PROGRESS: { bg: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "rgba(124,58,237,0.2)", label: "In Progress" },
+    DONE: { bg: "rgba(22,163,74,0.1)", color: "#16a34a", border: "rgba(22,163,74,0.2)", label: "Done" },
   };
 
   const s = STATUS_STYLES[status] || STATUS_STYLES.PENDING;

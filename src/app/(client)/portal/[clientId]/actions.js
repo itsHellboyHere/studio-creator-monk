@@ -1,6 +1,7 @@
 "use server";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { sendPushToTeam } from "@/lib/webpush";
 
 export async function updateClientProfile(clientId, formData) {
   await db.client.update({
@@ -23,18 +24,34 @@ export async function updateClientProfile(clientId, formData) {
 
 export async function submitPostReview(postId, clientId, action, feedback) {
   const newStatus = action === "APPROVE" ? "APPROVED" : "CHANGES_REQUESTED";
-  await db.post.update({
+  
+  const post = await db.post.update({
     where: { id: postId },
     data: {
       status:     newStatus,
       clientNote: feedback || null,
       approvedAt: newStatus === "APPROVED" ? new Date() : null,
     },
+    include: { client: { select: { name: true } } },
   });
+
+  const isApproval = newStatus === "APPROVED";
+  await sendPushToTeam({
+    title: isApproval ? "✅ Post Approved" : "🔄 Changes Requested",
+    body: `${post.client.name}: "${post.title}"`,
+    tag: `review-${postId}`,
+    url: `/clients/${clientId}`,
+  }).catch(() => {});
+
   revalidatePath(`/portal/${clientId}`);
 }
 
 export async function requestFestivePost(clientId, festivalName, festivalDate) {
+  const client = await db.client.findUnique({
+    where: { id: clientId },
+    select: { name: true },
+  });
+
   await db.festivePostRequest.upsert({
     where: {
       clientId_festivalDate_festivalName: {
@@ -51,6 +68,14 @@ export async function requestFestivePost(clientId, festivalName, festivalDate) {
       status: "PENDING",
     },
   });
+
+  await sendPushToTeam({
+    title: "🪔 Festive Post Requested",
+    body: `${client.name} wants a post for ${festivalName}`,
+    tag: `festive-${clientId}-${festivalDate}`,
+    url: `/clients/${clientId}`,
+  }).catch(() => {});
+
   revalidatePath(`/portal/${clientId}`);
 }
 
@@ -64,3 +89,5 @@ export async function cancelFestiveRequest(clientId, festivalName, festivalDate)
   });
   revalidatePath(`/portal/${clientId}`);
 }
+
+

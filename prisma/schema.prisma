@@ -114,7 +114,7 @@ model User {
   // If they are a client, they link to a Client Company
   clientId      String?
   client        Client?  @relation(fields: [clientId], references: [id])
-
+  pushSubscriptions PushSubscription[]
   // If they are ADMIN/TEAM, they link to a Team Profile (Image 13 & 14)
   teamProfile   TeamProfile? 
 
@@ -183,4 +183,13 @@ model FestivePostRequest {
   updatedAt    DateTime             @updatedAt
 
   @@unique([clientId, festivalDate, festivalName])
+}
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }

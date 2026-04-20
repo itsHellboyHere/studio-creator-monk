@@ -206,6 +206,7 @@ export default async function ClientsPage({ searchParams }) {
           })
         )}
       </div>
+      
     </div>
   );
 }
