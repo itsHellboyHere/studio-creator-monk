@@ -46,34 +46,42 @@ export default function PortalDashboard({ client, isAdminOrTeam, holidays, festi
   const [currentPage, setCurrentPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentRef = useRef(null);
+  // Stores the scroll Y at the moment any modal/drawer opens
+  const savedScrollY = useRef(0);
 
   // ── Scroll lock (iOS Safari) ──
   useEffect(() => {
     const isOpen = !!(reviewPost || editOpen || mobileNavOpen);
     if (isOpen) {
-      const scrollY = window.scrollY;
+      // Save scroll position BEFORE locking
+      savedScrollY.current = window.scrollY;
       document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
+      document.body.style.top = `-${savedScrollY.current}px`;
       document.body.style.left = "0";
       document.body.style.right = "0";
       document.body.style.overflow = "hidden";
-      document.body.dataset.scrollY = String(scrollY);
     } else {
-      const scrollY = parseInt(document.body.dataset.scrollY || "0", 10);
+      // Only restore if we actually locked (savedScrollY > 0 OR body is fixed)
+      const wasLocked = document.body.style.position === "fixed";
       document.body.style.top = "";
       document.body.style.position = "";
       document.body.style.left = "";
       document.body.style.right = "";
       document.body.style.overflow = "";
-      window.scrollTo({ top: scrollY, behavior: "instant" });
-      delete document.body.dataset.scrollY;
+      if (wasLocked) {
+        // Restore scroll synchronously — no rAF delay
+        window.scrollTo(0, savedScrollY.current);
+      }
     }
     return () => {
-      if (document.body.dataset.scrollY) {
-        const scrollY = parseInt(document.body.dataset.scrollY, 10);
-        document.body.style.top = document.body.style.position = document.body.style.left = document.body.style.right = document.body.style.overflow = "";
-        window.scrollTo({ top: scrollY, behavior: "instant" });
-        delete document.body.dataset.scrollY;
+      // Cleanup if component unmounts while locked
+      if (document.body.style.position === "fixed") {
+        document.body.style.top = "";
+        document.body.style.position = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, savedScrollY.current);
       }
     };
   }, [reviewPost, editOpen, mobileNavOpen]);
