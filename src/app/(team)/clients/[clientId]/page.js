@@ -27,8 +27,10 @@ export default async function ClientAdminPage({ params, searchParams }) {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-  const [totalPosts, client, approvedCount, pendingCount, currentHolidays, nextHolidays] = await Promise.all([
+  const [totalPosts, client, approvedCount, pendingCount, currentMonthPosts, currentHolidays, nextHolidays] = await Promise.all([
     db.post.count({ where: { clientId } }),
     db.client.findUnique({
       where: { id: clientId },
@@ -46,6 +48,19 @@ export default async function ClientAdminPage({ params, searchParams }) {
     }),
     db.post.count({ where: { clientId, status: "APPROVED" } }),
     db.post.count({ where: { clientId, status: "PENDING_REVIEW" } }),
+    db.post.findMany({
+      where: {
+        clientId,
+        scheduledDate: { gte: monthStart, lte: monthEnd },
+      },
+      select: {
+        id: true,
+        status: true,
+        targetPlatform: true,
+        contentType: true,
+        scheduledDate: true,
+      },
+    }),
     fetchIndianHolidays(currentYear, currentMonth),
     fetchIndianHolidays(
       currentMonth === 12 ? currentYear + 1 : currentYear,
@@ -66,6 +81,7 @@ export default async function ClientAdminPage({ params, searchParams }) {
       currentPage={currentPage}
       postsPerPage={POSTS_PER_PAGE}
       holidays={holidays}
+      currentMonthPosts={currentMonthPosts}
     />
   );
 }

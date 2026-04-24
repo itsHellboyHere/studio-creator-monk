@@ -16,7 +16,9 @@ import DeliverableModal from "./DeliverableModal";
 import ContentCalendar from "./ContentCalendar";
 import styles from "./clientPage.module.css";
 import { updateFestiveRequestStatus } from "./actions";
-export default function ClientDashboard({ client, totalPosts, approvedCount, pendingCount, currentPage, postsPerPage, holidays }) {
+import TeamQuotaProgress from "./TeamQuotaProgress";
+
+export default function ClientDashboard({ client, totalPosts, approvedCount, pendingCount, currentPage, postsPerPage, holidays, currentMonthPosts }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -348,7 +350,12 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               </div>
             )}
           </div>
-
+            {/* ── MONTHLY QUOTA PROGRESS ── */}
+{client.quotas.length > 0 && (
+  <div className={`${styles.card} ${styles.cardQuotaProgress}`}>
+    <TeamQuotaProgress quotas={client.quotas} posts={currentMonthPosts} />
+  </div>
+)}
           <div className={`${styles.card} ${styles.cardSocial}`}>
             <div className={styles.cardLabelRow}>
               <span className={styles.cardLabel}><FiGlobe size={12} /> Brand Channels</span>
