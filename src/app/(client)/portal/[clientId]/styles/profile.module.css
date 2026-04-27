@@ -1,0 +1,44 @@
+.profileSection { scroll-margin-top: 78px; }
+
+.editBtn {
+  background: var(--white); border: 1px solid var(--border);
+  color: var(--text2); padding: 0.5rem 1rem; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.15s; flex-shrink: 0;
+}
+.editBtn:hover { border-color: var(--orange); color: var(--orange); background: #fff4ee; }
+
+.profileCard { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+
+.bioSection { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.4rem; }
+.bioLabel { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); }
+.bioText { font-size: 0.875rem; color: var(--text2); line-height: 1.65; }
+
+.socialList { padding: 0.5rem 1rem; }
+.socialRow { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-radius: 8px; gap: 1rem; transition: background 0.1s; }
+.socialRow:hover { background: var(--cream); }
+.socialLabel { font-size: 0.75rem; font-weight: 600; color: var(--text2); min-width: 80px; }
+.socialLink { font-size: 0.75rem; color: var(--orange); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.socialLink:hover { text-decoration: underline; }
+.socialEmpty { font-size: 0.72rem; color: var(--border2); }
+
+/* Edit Modal */
+.editModal { background: var(--white); width: 100%; max-width: 540px; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow2); animation: fadeUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
+.editForm { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.fieldGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+.field { display: flex; flex-direction: column; gap: 0.35rem; }
+.fieldLabel { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); }
+.fieldInput, .fieldTextarea { border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.75rem; font-size: 0.85rem; font-family: 'DM Sans', sans-serif; color: var(--text1); background: var(--cream); width: 100%; transition: border-color 0.15s, box-shadow 0.15s; resize: vertical; box-sizing: border-box; }
+.fieldInput:focus, .fieldTextarea:focus { outline: none; border-color: var(--orange2); box-shadow: 0 0 0 3px rgba(249,115,22,0.08); background: var(--white); }
+.editActions { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+@media (max-width: 768px) {
+  .profileSection { scroll-margin-top: 68px; }
+  .socialList { padding: 0; }
+  .socialLink { max-width: 180px; font-size: 0.7rem; }
+  .bioSection { padding: 1.25rem; }
+  .editModal { max-height: 92vh; border-radius: 12px; }
+  .fieldGrid { grid-template-columns: 1fr; }
+}

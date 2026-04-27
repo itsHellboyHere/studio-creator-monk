@@ -1592,3 +1592,159 @@
   .festiveBanner { flex-direction: column; align-items: flex-start; }
   .festiveBannerCta { width: 100%; text-align: center; }
 }
+
+/* ── NEW HERO CARD ── */
+.heroCard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 1.25rem;
+  border-left: 3px solid var(--orange);  /* subtle left accent */
+}
+.heroCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 2rem 2rem 1.5rem;
+  gap: 1.5rem;
+   background: var(--white);  /* remove the gradient */
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.heroCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.heroCardRight {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+}
+
+.heroBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.heroBrandLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--orange);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.heroTitle {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 400;
+  color: var(--text1);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.heroDesc {
+  font-size: 0.875rem;
+  color: var(--text2);
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0;
+}
+
+.heroPendingBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.heroPendingBtn:hover { background: #fde68a; }
+
+/* Stats strip */
+.heroStats {
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.heroStat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 1rem;
+}
+
+.heroStatNum {
+  font-family: 'Fraunces', serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text1);
+  line-height: 1;
+}
+
+.heroStatLabel {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.heroStatDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Mobile hero ── */
+@media (max-width: 768px) {
+  .heroCardTop {
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+  .heroTitle { font-size: 1.5rem; }
+  .heroStat { padding: 1rem 0.5rem; }
+  .heroStatNum { font-size: 1.625rem; }
+  .heroStatLabel { font-size: 0.55rem; }
+  .heroCardRight { width: 100%; }
+  .heroPendingBtn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .heroStatDivider { display: none; }
+  .heroStats { flex-wrap: wrap; }
+  .heroStat { min-width: 50%; border-bottom: 1px solid var(--border); }
+  .heroStat:nth-child(odd) { border-right: 1px solid var(--border); }
+  .heroStat:nth-last-child(-n+2) { border-bottom: none; }
+}
