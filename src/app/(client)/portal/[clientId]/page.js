@@ -21,11 +21,15 @@ async function fetchIndianHolidays(year, month) {
   try {
     const res = await fetch(
       `https://calendarific.com/api/v2/holidays?api_key=${process.env.CALENDARIFIC_API_KEY}&country=IN&year=${year}&month=${month}&type=national,religious,observance`,
-      { next: { revalidate: 86400 } } // cache 24hrs
+      { cache: "no-store" }  // ← change this, remove revalidate
     );
     const data = await res.json();
+    if (!data?.response?.holidays) {
+      console.error("Calendarific error:", JSON.stringify(data));
+    }
     return data?.response?.holidays || [];
-  } catch {
+  } catch (err) {
+    console.error("Calendarific fetch failed:", err);
     return [];
   }
 }
