@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import PortalDashboard from "./PortalDashboard";
+import { getHolidaysForMonth } from "./indianHolidays";
 
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
@@ -17,23 +18,6 @@ export async function generateMetadata({ params }) {
   };
 }
 
-async function fetchIndianHolidays(year, month) {
-  try {
-    const res = await fetch(
-      `https://calendarific.com/api/v2/holidays?api_key=${process.env.CALENDARIFIC_API_KEY}&country=IN&year=${year}&month=${month}&type=national,religious,observance`,
-      { next: { revalidate: 604800 } } // cache 7 days — not 24hrs
-    );
-    const data = await res.json();
-    if (data?.meta?.code === 429) {
-      console.warn("Calendarific rate limit hit — returning empty");
-      return [];
-    }
-    return data?.response?.holidays || [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function ClientPortalPage({ params }) {
   const resolvedParams = await params;
   const clientId = resolvedParams.clientId;
@@ -43,33 +27,28 @@ export default async function ClientPortalPage({ params }) {
     session?.user?.role === "ADMIN" || session?.user?.role === "TEAM";
 
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // calendarific is 1-indexed
+  const currentYear  = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  const nextYear     = currentMonth === 12 ? currentYear + 1 : currentYear;
+  const nextMonth    = currentMonth === 12 ? 1 : currentMonth + 1;
 
-  // Fetch holidays for current + next month in parallel
-  const [client, currentHolidays, nextHolidays] = await Promise.all([
+  const [client] = await Promise.all([
     db.client.findUnique({
       where: { id: clientId },
       include: {
         quotas: true,
-        posts: {
-          orderBy: { createdAt: "desc" },
-        },
-        festiveRequests: {
-          orderBy: { festivalDate: "asc" },
-        },
+        posts: { orderBy: { createdAt: "desc" } },
+        festiveRequests: { orderBy: { festivalDate: "asc" } },
       },
     }),
-    fetchIndianHolidays(currentYear, currentMonth),
-    fetchIndianHolidays(
-      currentMonth === 12 ? currentYear + 1 : currentYear,
-      currentMonth === 12 ? 1 : currentMonth + 1
-    ),
   ]);
 
   if (!client) return notFound();
 
-  const holidays = [...currentHolidays, ...nextHolidays];
+  const holidays = [
+    ...getHolidaysForMonth(currentYear, currentMonth),
+    ...getHolidaysForMonth(nextYear, nextMonth),
+  ];
 
   return (
     <PortalDashboard
