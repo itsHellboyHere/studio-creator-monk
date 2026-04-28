@@ -225,14 +225,14 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
               </div>
             )}
             {/* Feedback Alert — Changes Requested */}
-            {isEdit && post.status === "CHANGES_REQUESTED" && post.clientNote && (
+            {/* {isEdit && post.status === "CHANGES_REQUESTED" && post.clientNote && (
               <div className={styles.feedbackAlert}>
                 <div className={styles.feedbackAlertHead}>
                   <FiMessageSquare size={14} /><strong>Client Requested Changes:</strong>
                 </div>
                 <p>{post.clientNote}</p>
               </div>
-            )}
+            )} */}
 
             {/* Approval Note — Approved with feedback */}
             {isEdit && post.status === "APPROVED" && post.clientNote && (
