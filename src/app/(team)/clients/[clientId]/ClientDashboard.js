@@ -223,12 +223,16 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                         {client.posts.map(post => (
                           <tr key={post.id} style={{ opacity: deletingPostId === post.id ? 0.4 : 1, transition: "opacity 200ms" }}>
                             <td className={styles.cellTitle}>
-                              {post.title}
-                              {post.mediaUrls?.length > 1 && (
-                                <span className={styles.carouselBadge}>
-                                  <FiGrid size={8} /> {post.mediaUrls.length}
-                                </span>
-                              )}
+                              <div className={styles.cellTitleInner}>
+                                <span className={styles.cellTitleText}>{post.title}</span>
+                                {post.mediaUrls?.length > 1 && (
+                                  <div className={styles.cellTitleBadges}>
+                                    <span className={styles.carouselBadge}>
+                                      <FiGrid size={8} /> {post.mediaUrls.length}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className={styles.cellPlatform}>{post.targetPlatform} {post.contentType}</td>
                             <td>
@@ -242,11 +246,8 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                                 : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>}
                             </td>
                             <td className={styles.cellDate}>
-                              {new Date(post.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })}
-                            </td>
-                            <td className={styles.cellDate}>
-                              {post.approvedAt
-                                ? <>
+                              {post.approvedAt ? (
+                                <>
                                   <span className={styles.dateMain}>
                                     {new Date(post.approvedAt).toLocaleDateString('en-IN', {
                                       timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short'
@@ -258,8 +259,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                                     })}
                                   </span>
                                 </>
-                                : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>
-                              }
+                              ) : (
+                                <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>
+                              )}
                             </td>
                             <td className={styles.tdActions}>
                               <button
@@ -350,12 +352,12 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               </div>
             )}
           </div>
-            {/* ── MONTHLY QUOTA PROGRESS ── */}
-{client.quotas.length > 0 && (
-  <div className={`${styles.card} ${styles.cardQuotaProgress}`}>
-    <TeamQuotaProgress quotas={client.quotas} posts={currentMonthPosts} />
-  </div>
-)}
+          {/* ── MONTHLY QUOTA PROGRESS ── */}
+          {client.quotas.length > 0 && (
+            <div className={`${styles.card} ${styles.cardQuotaProgress}`}>
+              <TeamQuotaProgress quotas={client.quotas} posts={currentMonthPosts} />
+            </div>
+          )}
           <div className={`${styles.card} ${styles.cardSocial}`}>
             <div className={styles.cardLabelRow}>
               <span className={styles.cardLabel}><FiGlobe size={12} /> Brand Channels</span>
@@ -420,7 +422,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                 </span>
               )}
             </div>
-              
+
             {!client.festiveRequests?.length ? (
               <div className={styles.emptyState}>
                 <span style={{ fontSize: 28 }}>🪔</span>
@@ -490,7 +492,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </div>
       )}
-  
+
       {isQuotaModalOpen && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
@@ -517,9 +519,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}><FiPlus /> Add Quota</button></div>
             </form>
           </div>
-          
+
         </div>
-        
+
       )}
     </div>
   );

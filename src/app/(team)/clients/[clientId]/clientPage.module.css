@@ -236,7 +236,14 @@
   font-size: 11px; 
   white-space: nowrap; 
 }
-
+.cellTitleInner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1;
+}
 /* Two-line approved timestamp */
 .dateMain {
   display: block;
@@ -599,3 +606,74 @@
 }
 .cardQuotaProgress { grid-column: span 2; animation-delay: 90ms; padding: 0; overflow: hidden; }
 @media (max-width: 600px) { .cardQuotaProgress { grid-column: span 1; } }
+
+/* ── CLIENT NOTE STYLES ── */
+.cellTitleInner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cellTitleText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+.cellTitleBadges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.clientNoteBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  background: rgba(13,122,87,0.08);
+  border: 1px solid rgba(13,122,87,0.2);
+  font-size: 10px;
+  cursor: help;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: background 150ms;
+}
+.clientNoteBadge:hover {
+  background: rgba(13,122,87,0.15);
+}
+
+
+
+/* Approval note in edit modal */
+.approvalNote {
+  background: rgba(13,122,87,0.05);
+  border: 1px solid rgba(13,122,87,0.18);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.approvalNoteHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent2);
+}
+.approvalNoteHead strong {
+  font-size: 10px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+.approvalNote p {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
