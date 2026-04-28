@@ -9,6 +9,7 @@ import HeroSection from "./sections/HeroSection";
 import ContentSection from "./sections/ContentSecions";
 import PlanSection from "./sections/PlanSection";
 import ProfileSection from "./sections/ProfileSection";
+import { initPostHog, posthog } from "@/lib/posthog";
 
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
@@ -70,6 +71,39 @@ export default function PortalDashboard({ client, isAdminOrTeam, holidays }) {
     return () => obs.disconnect();
   }, []);
 
+
+    // PostHog tracking
+useEffect(() => {
+  initPostHog();
+
+  // Identify client
+  posthog.identify(client.id, {
+    name: client.name,
+    type: "client",
+    industry: client.brandDescription || "unknown",
+  });
+
+  // Track portal open
+  posthog.capture("portal_opened", {
+    clientId: client.id,
+    clientName: client.name,
+    pendingPosts: pending.length,
+    approvedPosts: approved.length,
+  });
+
+  // Notify team via push
+  fetch("/api/portal-live", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: client.id, clientName: client.name }),
+  }).catch(() => {});
+
+  return () => {
+    posthog.capture("portal_closed", { clientId: client.id });
+  };
+}, [client.id]);
+
+
   const allPosts = client.posts || [];
   const pending  = allPosts.filter(p => p.status === "PENDING_REVIEW");
   const approved = allPosts.filter(p => p.status === "APPROVED");
@@ -106,6 +140,9 @@ export default function PortalDashboard({ client, isAdminOrTeam, holidays }) {
       window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 70, behavior: "smooth" });
     }));
   }, []);
+
+
+
 
   return (
     <div className={styles.portal}>
