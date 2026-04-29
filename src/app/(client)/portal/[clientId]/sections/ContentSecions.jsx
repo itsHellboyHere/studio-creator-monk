@@ -18,19 +18,33 @@ const STATUS_META = {
   CHANGES_REQUESTED: { label: "Changes Needed", bg: "#fee2e2", color: "#991b1b" },
 };
 
-const POSTS_PER_PAGE = 9;
+const FILTERS = [
+  { key: "ALL",               label: "All" },
+  { key: "PENDING_REVIEW",    label: "Pending",  color: "#854d0e",  bg: "#fef9c3",  border: "rgba(133,77,14,0.25)" },
+  { key: "APPROVED",          label: "Approved", color: "#166534",  bg: "#dcfce7",  border: "rgba(22,101,52,0.25)" },
+  { key: "CHANGES_REQUESTED", label: "Changes",  color: "#991b1b",  bg: "#fee2e2",  border: "rgba(153,27,27,0.25)" },
+];
+
+const POSTS_PER_PAGE = 15;
 
 export default function ContentSection({ allPosts, pending, setReviewPost }) {
-  const contentRef = useRef(null);
+  const contentRef    = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter]           = useState("ALL");
 
-  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
-  const pagedPosts = allPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
+  const filteredPosts = filter === "ALL" ? allPosts : allPosts.filter(p => p.status === filter);
+  const totalPages    = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
+  const pagedPosts    = filteredPosts.slice((currentPage - 1) * POSTS_PER_PAGE, currentPage * POSTS_PER_PAGE);
 
   const goToPage = useCallback((page) => {
     setCurrentPage(page);
     setTimeout(() => contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   }, []);
+
+  const handleFilter = (key) => {
+    setFilter(key);
+    setCurrentPage(1);
+  };
 
   const getPageNumbers = () => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -39,7 +53,7 @@ export default function ContentSection({ allPosts, pending, setReviewPost }) {
     return [1, "…", currentPage - 1, currentPage, currentPage + 1, "…", totalPages];
   };
 
-  const getThumb = (post) => post.mediaUrls?.length ? post.mediaUrls[0] : (post.driveLink || null);
+  const getThumb      = (post) => post.mediaUrls?.length ? post.mediaUrls[0] : (post.driveLink || null);
   const getSlideCount = (post) => post.mediaUrls?.length || 1;
 
   return (
@@ -55,7 +69,39 @@ export default function ContentSection({ allPosts, pending, setReviewPost }) {
         {totalPages > 1 && <div className={styles.pageInfo}>Page {currentPage} of {totalPages}</div>}
       </div>
 
-      {pending.length > 0 && (
+      {/* ── Filter Pills ── */}
+      {allPosts.length > 0 && (
+        <div className={styles.filterRow}>
+          {FILTERS.map(f => {
+            const count = f.key === "ALL" ? allPosts.length : allPosts.filter(p => p.status === f.key).length;
+            const isActive = filter === f.key;
+            return (
+              <button
+                key={f.key}
+                className={`${styles.filterPill} ${isActive ? styles.filterPillActive : ""}`}
+                onClick={() => handleFilter(f.key)}
+                style={isActive && f.color ? {
+                  background: f.bg,
+                  color: f.color,
+                  borderColor: f.border,
+                } : {}}
+              >
+                {f.label}
+                {count > 0 && (
+                  <span
+                    className={styles.filterPillCount}
+                    style={isActive && f.color ? { background: "rgba(0,0,0,0.08)", color: f.color } : {}}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {pending.length > 0 && filter === "ALL" && (
         <div className={styles.alertBanner}>
           <div className={styles.alertIcon}>
             <span style={{ width: 7, height: 7, background: "#f59e0b", borderRadius: "50%", display: "block", animation: "ping 2s ease-in-out infinite" }} />
@@ -70,13 +116,18 @@ export default function ContentSection({ allPosts, pending, setReviewPost }) {
           <div className={styles.emptyIcon}>📭</div>
           <p>No content yet — your team is on it.</p>
         </div>
+      ) : filteredPosts.length === 0 ? (
+        <div className={styles.empty}>
+          <div className={styles.emptyIcon}>🔍</div>
+          <p>No {FILTERS.find(f => f.key === filter)?.label.toLowerCase()} posts.</p>
+        </div>
       ) : (
         <>
           <div className={styles.grid}>
             {pagedPosts.map(post => {
-              const pc        = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
-              const sm        = STATUS_META[post.status] || STATUS_META.DRAFT;
-              const isPending = post.status === "PENDING_REVIEW";
+              const pc         = PLATFORM_COLORS[post.targetPlatform] || PLATFORM_COLORS.OTHER;
+              const sm         = STATUS_META[post.status] || STATUS_META.DRAFT;
+              const isPending  = post.status === "PENDING_REVIEW";
               const slideCount = getSlideCount(post);
               const thumbUrl   = getThumb(post);
               const isImgThumb = thumbUrl && !thumbUrl.match(/\.(mp4|mov|webm|ogg)(\?.*)?$/i) && !thumbUrl.includes("drive.google.com");
@@ -96,7 +147,6 @@ export default function ContentSection({ allPosts, pending, setReviewPost }) {
                     </div>
                   )}
 
-                  {/* Media thumbnail */}
                   <div className={styles.cardMedia} style={{ background: pc.bg }}>
                     {isImgThumb
                       ? <img src={thumbUrl} alt={post.title} className={styles.cardMediaImg} />

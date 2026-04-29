@@ -162,3 +162,56 @@
   .pageNumbers { gap: 0.15rem; }
   .pageNum { width: 30px; height: 30px; font-size: 0.72rem; }
 }
+
+/* ── Filter Pills ── */
+.filterRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.filterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.filterPill:hover { border-color: var(--border2); color: var(--text1); background: var(--cream); }
+
+.filterPillActive {
+  background: var(--cream);
+  border-color: var(--border2);
+  color: var(--text1);
+}
+
+.filterPillCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: var(--cream);
+  color: var(--text3);
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+}
+
+@media (max-width: 480px) {
+  .filterRow { gap: 4px; }
+  .filterPill { font-size: 0.72rem; padding: 0.3rem 0.75rem; }
+}
