@@ -677,3 +677,79 @@
   margin: 0;
   font-style: italic;
 }
+/* ── STATUS FILTER BAR ── */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filterBar::-webkit-scrollbar { display: none; }
+
+.filterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted2);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.filterBtn:hover { background: var(--s2); color: var(--text); }
+
+.filterBtnActive {
+  background: var(--s2);
+  border-color: var(--border-hi);
+  color: var(--text);
+}
+
+.filterCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--s3);
+  color: var(--muted2);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+.filterCountActive {
+  background: var(--border-hi);
+  color: var(--text);
+}
+
+/* Status-specific active colors */
+.filterBar button[data-status="PENDING_REVIEW"].filterBtnActive {
+  border-color: rgba(180,83,9,0.3);
+  color: var(--amber);
+}
+.filterBar button[data-status="APPROVED"].filterBtnActive {
+  border-color: rgba(22,163,74,0.3);
+  color: #16a34a;
+}
+.filterBar button[data-status="CHANGES_REQUESTED"].filterBtnActive {
+  border-color: rgba(220,38,38,0.25);
+  color: #dc2626;
+}
+
+@media (max-width: 600px) {
+  .filterBar { padding: 8px 12px; gap: 3px; }
+  .filterBtn { font-size: 10px; padding: 4px 10px; }
+}

@@ -31,6 +31,8 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
   const [notifyResult, setNotifyResult] = useState(null);
   const [deletingPostId, setDeletingPostId] = useState(null);
   const [activeTab, setActiveTab] = useState("pipeline");
+  const [filterStatus, setFilterStatus] = useState("ALL");
+
 
   const socialLinks = [
     { id: "web", icon: <FiGlobe />, label: "Website", url: client.websiteUrl, color: "#5bf0c4" },
@@ -60,6 +62,11 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
     const fullPost = client.posts.find(p => p.id === postPreview.id) || postPreview;
     setEditingPost(fullPost);
   };
+
+  const filteredPosts = client.posts.filter(post => {
+    if (filterStatus === "ALL") return true;
+    return post.status === filterStatus;
+  });
 
   const handleDeletePost = async (post) => {
     const confirmed = window.confirm(
@@ -145,7 +152,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           </div>
         </header>
 
-        {/* ── PIPELINE / CALENDAR SECTION (moved above bento) ── */}
+        {/* ── PIPELINE / CALENDAR SECTION ── */}
         <section className={styles.pipelineSection}>
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
@@ -184,6 +191,40 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
             </div>
           </div>
 
+          {/* ── STATUS FILTER BAR ── */}
+          {activeTab === "pipeline" && (
+            <div className={styles.filterBar}>
+              {[
+                { key: "ALL", label: "All", count: client.posts.length, activeColor: null },
+                { key: "PENDING_REVIEW", label: "Pending", count: client.posts.filter(p => p.status === "PENDING_REVIEW").length, activeColor: "#b45309", activeBorder: "rgba(180,83,9,0.3)", activeBg: "rgba(180,83,9,0.06)" },
+                { key: "APPROVED", label: "Approved", count: client.posts.filter(p => p.status === "APPROVED").length, activeColor: "#16a34a", activeBorder: "rgba(22,163,74,0.3)", activeBg: "rgba(22,163,74,0.06)" },
+                { key: "CHANGES_REQUESTED", label: "Changes", count: client.posts.filter(p => p.status === "CHANGES_REQUESTED").length, activeColor: "#dc2626", activeBorder: "rgba(220,38,38,0.25)", activeBg: "rgba(220,38,38,0.06)" },
+                { key: "DRAFT", label: "Draft", count: client.posts.filter(p => p.status === "DRAFT").length, activeColor: null },
+              ].map(f => (
+                <button
+                  key={f.key}
+                  className={`${styles.filterBtn} ${filterStatus === f.key ? styles.filterBtnActive : ""}`}
+                  onClick={() => setFilterStatus(f.key)}
+                  style={filterStatus === f.key && f.activeColor ? {
+                    color: f.activeColor,
+                    borderColor: f.activeBorder,
+                    background: f.activeBg,
+                  } : {}}
+                >
+                  {f.label}
+                  {f.count > 0 && (
+                    <span
+                      className={`${styles.filterCount} ${filterStatus === f.key ? styles.filterCountActive : ""}`}
+                      style={filterStatus === f.key && f.activeColor ? { background: f.activeBg, color: f.activeColor } : {}}
+                    >
+                      {f.count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
           {notifyResult && (
             <div className={styles.notifyToast} style={{
               background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
@@ -204,6 +245,12 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                   <p>No content uploaded yet.</p>
                   <span>Upload a video/image to start the approval process.</span>
                 </div>
+              ) : filteredPosts.length === 0 ? (
+                <div className={styles.emptyPipeline}>
+                  <FiList size={28} />
+                  <p>No posts with this status.</p>
+                  <span>Try a different filter above.</span>
+                </div>
               ) : (
                 <>
                   <div className={styles.tableWrapper}>
@@ -220,7 +267,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                         </tr>
                       </thead>
                       <tbody>
-                        {client.posts.map(post => (
+                        {filteredPosts.map(post => (
                           <tr key={post.id} style={{ opacity: deletingPostId === post.id ? 0.4 : 1, transition: "opacity 200ms" }}>
                             <td className={styles.cellTitle}>
                               <div className={styles.cellTitleInner}>
@@ -244,6 +291,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                               {post.scheduledDate
                                 ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })
                                 : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>}
+                            </td>
+                            <td className={styles.cellDate}>
+                              {new Date(post.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })}
                             </td>
                             <td className={styles.cellDate}>
                               {post.approvedAt ? (
@@ -289,7 +339,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                     </table>
                   </div>
 
-                  {totalPages > 1 && (
+                  {totalPages > 1 && filterStatus === "ALL" && (
                     <div className={styles.pagination}>
                       <span className={styles.pageInfo}>
                         Showing {(currentPage - 1) * postsPerPage + 1} to {Math.min(currentPage * postsPerPage, totalPosts)} of {totalPosts}
