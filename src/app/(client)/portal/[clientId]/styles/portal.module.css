@@ -336,3 +336,51 @@
 @media (min-width: 769px) {
   .reviewModal { animation: fadeUp 0.2s ease both; }
 }
+/* ── Quota Month Navigation ── */
+.qpMonthNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.qpMonthLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qpMonthBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.qpMonthBtn:hover:not(:disabled) {
+  border-color: var(--border2);
+  color: var(--text1);
+  background: var(--cream);
+}
+.qpMonthBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qpCurrentBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(212, 81, 26, 0.08);
+  color: #d4511a;
+  border: 1px solid rgba(212, 81, 26, 0.2);
+}

@@ -45,12 +45,14 @@ export default function HeroSection({ client, pending, approved, totalQ, unreque
             <span className={styles.heroStatNum} style={{ color: pending.length > 0 ? "#d97706" : "var(--text1)" }}>
               {pending.length}
             </span>
-            <span className={styles.heroStatLabel}>Awaiting Review</span>
+            <span className={styles.heroStatLabel}>Needs Review</span>
           </div>
           <div className={styles.heroStatDivider} />
           <div className={styles.heroStat}>
-            <span className={styles.heroStatNum} style={{ color: "#16a34a" }}>{approved.length}</span>
-            <span className={styles.heroStatLabel}>Approved</span>
+            <span className={styles.heroStatNum} style={{ color: "#16a34a" }}>
+              {client.posts?.filter(p => p.status === "APPROVED").length || 0}
+            </span>
+            <span className={styles.heroStatLabel}>Total Approved</span>
           </div>
           <div className={styles.heroStatDivider} />
           <div className={styles.heroStat}>

@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import styles from "./portal.module.css";
 
 const PLATFORM_META = {
@@ -14,24 +14,37 @@ const CONTENT_TYPE_LABELS = { REEL: "Reel", POST: "Post", STORY: "Story", VIDEO_
 
 export default function QuotaProgress({ quotas, posts }) {
   const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  // offset: 0 = current month, -1 = last month, +1 = next month
+  const [offset, setOffset] = useState(0);
+
+  const viewDate = useMemo(() => {
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    return d;
+  }, [offset]);
+
+  const viewMonth = viewDate.getMonth();
+  const viewYear  = viewDate.getFullYear();
+  const isCurrentMonth = offset === 0;
+
+  // Don't allow going beyond current month into future
+  const canGoNext = offset < 0;
+  // Don't allow going too far back (6 months max)
+  const canGoPrev = offset > -6;
 
   const approvedCounts = useMemo(() => {
     const map = {};
     posts.forEach(p => {
       if (p.status !== "APPROVED") return;
-      // Use scheduledDate to determine which month this post belongs to
       const date = p.scheduledDate ? new Date(p.scheduledDate) : null;
       if (!date) return;
-      if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) return;
+      if (date.getMonth() !== viewMonth || date.getFullYear() !== viewYear) return;
       const key = `${p.targetPlatform}__${p.contentType}`;
       map[key] = (map[key] || 0) + 1;
     });
     return map;
-  }, [posts, currentMonth, currentYear]);
+  }, [posts, viewMonth, viewYear]);
 
-  const monthLabel = now.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const monthLabel = viewDate.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
 
   const totalPlanned   = quotas.reduce((s, q) => s + q.amount, 0);
   const totalApproved  = quotas.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
@@ -48,10 +61,40 @@ export default function QuotaProgress({ quotas, posts }) {
     <div className={styles.quotaProgress}>
       <div className={styles.qpHeader}>
         <div className={styles.qpHeaderLeft}>
-          <span className={styles.qpTitle}>{monthLabel} Deliverables</span>
+          {/* Month navigation */}
+          <div className={styles.qpMonthNav}>
+            <button
+              className={styles.qpMonthBtn}
+              onClick={() => setOffset(o => o - 1)}
+              disabled={!canGoPrev}
+              title="Previous month"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div className={styles.qpMonthLabel}>
+              <span className={styles.qpTitle}>{monthLabel} Deliverables</span>
+              {isCurrentMonth && (
+                <span className={styles.qpCurrentBadge}>Current</span>
+              )}
+            </div>
+            <button
+              className={styles.qpMonthBtn}
+              onClick={() => setOffset(o => o + 1)}
+              disabled={!canGoNext}
+              title="Next month"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
           <span className={styles.qpSubtitle}>
-            {totalRemaining === 0 && totalPlanned > 0 ? "🎉 All posts approved — month complete!"
-              : totalApproved === 0 ? `${totalPlanned} posts planned — none approved yet`
+            {totalRemaining === 0 && totalPlanned > 0
+              ? "🎉 All posts approved — month complete!"
+              : totalApproved === 0
+              ? `${totalPlanned} posts planned — none approved yet`
               : `${totalApproved} approved · ${totalRemaining} still to go`}
           </span>
         </div>
@@ -61,12 +104,14 @@ export default function QuotaProgress({ quotas, posts }) {
           <span className={styles.qpBigTotal}>{totalPlanned}</span>
         </div>
       </div>
+
       <div className={styles.qpMainBar}>
         <div className={styles.qpMainFill} style={{ width: `${overallPct}%` }} />
       </div>
+
       <div className={styles.qpBody}>
         {Object.entries(byPlatform).map(([platform, rows]) => {
-          const pm        = PLATFORM_META[platform] || PLATFORM_META.OTHER;
+          const pm       = PLATFORM_META[platform] || PLATFORM_META.OTHER;
           const platTotal = rows.reduce((s, q) => s + q.amount, 0);
           const platDone  = rows.reduce((s, q) => s + Math.min(approvedCounts[`${q.platform}__${q.contentType}`] || 0, q.amount), 0);
           const platLeft  = platTotal - platDone;
@@ -93,8 +138,10 @@ export default function QuotaProgress({ quotas, posts }) {
                     <div className={styles.qpTypeLeft}>
                       <span className={styles.qpTypeLabel} style={{ background: pm.bg, color: pm.color }}>{label}</span>
                       <span className={styles.qpTypeStatus}>
-                        {complete ? <span className={styles.qpComplete}>All {q.amount} ✓</span>
-                          : done === 0 ? <span className={styles.qpZero}>{q.amount} planned</span>
+                        {complete
+                          ? <span className={styles.qpComplete}>All {q.amount} ✓</span>
+                          : done === 0
+                          ? <span className={styles.qpZero}>{q.amount} planned</span>
                           : <span className={styles.qpPartial}>{done} done · {left} left</span>}
                       </span>
                     </div>
