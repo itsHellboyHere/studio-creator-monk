@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
@@ -18,55 +18,87 @@ import styles from "./clientPage.module.css";
 import { updateFestiveRequestStatus } from "./actions";
 import TeamQuotaProgress from "./TeamQuotaProgress";
 
-export default function ClientDashboard({ client, totalPosts, approvedCount, pendingCount, currentPage, postsPerPage, holidays, currentMonthPosts }) {
+const FILTER_CONFIG = [
+  { key: "ALL",               label: "All",      activeColor: null },
+  { key: "PENDING_REVIEW",    label: "Pending",  activeColor: "#b45309", activeBorder: "rgba(180,83,9,0.3)",    activeBg: "rgba(180,83,9,0.06)" },
+  { key: "APPROVED",          label: "Approved", activeColor: "#16a34a", activeBorder: "rgba(22,163,74,0.3)",   activeBg: "rgba(22,163,74,0.06)" },
+  { key: "CHANGES_REQUESTED", label: "Changes",  activeColor: "#dc2626", activeBorder: "rgba(220,38,38,0.25)",  activeBg: "rgba(220,38,38,0.06)" },
+  { key: "DRAFT",             label: "Draft",    activeColor: null },
+];
+
+export default function ClientDashboard({
+  client,
+  totalPosts,
+  approvedCount,
+  pendingCount,
+  currentPage,
+  postsPerPage,
+  holidays,
+  currentMonthPosts,
+  filterStatus,
+  isFiltered,
+  statusCounts,
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen]   = useState(false);
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState(null);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [notifying, setNotifying] = useState(false);
-  const [notifyResult, setNotifyResult] = useState(null);
-  const [deletingPostId, setDeletingPostId] = useState(null);
-  const [activeTab, setActiveTab] = useState("pipeline");
-  const [filterStatus, setFilterStatus] = useState("ALL");
-
+  const [editingPost, setEditingPost]           = useState(null);
+  const [notifying, setNotifying]               = useState(false);
+  const [notifyResult, setNotifyResult]         = useState(null);
+  const [deletingPostId, setDeletingPostId]     = useState(null);
+  const [activeTab, setActiveTab]               = useState("pipeline");
 
   const socialLinks = [
-    { id: "web", icon: <FiGlobe />, label: "Website", url: client.websiteUrl, color: "#5bf0c4" },
-    { id: "ig", icon: <FiInstagram />, label: "Instagram", url: client.instagramUrl, color: "#f06292" },
-    { id: "fb", icon: <FiFacebook />, label: "Facebook", url: client.facebookUrl, color: "#7c9ff5" },
-    { id: "yt", icon: <FiYoutube />, label: "YouTube", url: client.youtubeUrl, color: "#f87171" },
-    { id: "in", icon: <FiLinkedin />, label: "LinkedIn", url: client.linkedinUrl, color: "#60a5fa" },
-    { id: "wa", icon: <FiPhone />, label: "WhatsApp", url: client.whatsappNumber, color: "#4ade80" },
+    { id: "web", icon: <FiGlobe />,     label: "Website",   url: client.websiteUrl,     color: "#5bf0c4" },
+    { id: "ig",  icon: <FiInstagram />, label: "Instagram", url: client.instagramUrl,   color: "#f06292" },
+    { id: "fb",  icon: <FiFacebook />,  label: "Facebook",  url: client.facebookUrl,    color: "#7c9ff5" },
+    { id: "yt",  icon: <FiYoutube />,   label: "YouTube",   url: client.youtubeUrl,     color: "#f87171" },
+    { id: "in",  icon: <FiLinkedin />,  label: "LinkedIn",  url: client.linkedinUrl,    color: "#60a5fa" },
+    { id: "wa",  icon: <FiPhone />,     label: "WhatsApp",  url: client.whatsappNumber, color: "#4ade80" },
   ];
 
-  const connectedCount = socialLinks.filter(l => l.url).length;
+  const connectedCount    = socialLinks.filter(l => l.url).length;
   const totalDeliverables = client.quotas.reduce((s, q) => s + q.amount, 0);
-  const daysActive = client.startDate ? Math.floor((Date.now() - new Date(client.startDate)) / 86400000) : null;
-  const getInitials = (name) => name ? name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : "CM";
+  const daysActive        = client.startDate
+    ? Math.floor((Date.now() - new Date(client.startDate)) / 86400000)
+    : null;
+  const getInitials = (name) =>
+    name ? name.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() : "CM";
 
   const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+  // ── URL-driven filter navigation ──
+  const setFilter = (key) => {
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (key === "ALL") {
+        params.delete("filter");
+      } else {
+        params.set("filter", key);
+      }
+      params.set("page", "1");
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
+  // ── Pagination (only active when not filtered) ──
   const navigateToPage = (newPage) => {
     if (newPage < 1 || newPage > totalPages) return;
-    setIsNavigating(true);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', newPage.toString());
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    setTimeout(() => setIsNavigating(false), 500);
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", newPage.toString());
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   };
 
   const handleCalendarEditPost = (postPreview) => {
     const fullPost = client.posts.find(p => p.id === postPreview.id) || postPreview;
     setEditingPost(fullPost);
   };
-
-  const filteredPosts = client.posts.filter(post => {
-    if (filterStatus === "ALL") return true;
-    return post.status === filterStatus;
-  });
 
   const handleDeletePost = async (post) => {
     const confirmed = window.confirm(
@@ -77,12 +109,15 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
     try {
       await deleteDeliverable(post.id, client.id);
       router.push(`${pathname}?page=1`);
-    } catch (err) {
+    } catch {
       alert("Failed to delete post. Please try again.");
     } finally {
       setDeletingPostId(null);
     }
   };
+
+  // client.posts is already the correct set (server filtered or paginated)
+  const posts = client.posts;
 
   return (
     <div className={styles.page}>
@@ -109,10 +144,19 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={styles.avatarWrap}>
             <div className={styles.avatar}>
               {client.logoUrl ? (
-                <img src={client.logoUrl} alt={client.name} className={styles.logoImg}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+                <img
+                  src={client.logoUrl}
+                  alt={client.name}
+                  className={styles.logoImg}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "block";
+                  }}
+                />
               ) : null}
-              <span style={{ display: client.logoUrl ? 'none' : 'block' }}>{getInitials(client.name)}</span>
+              <span style={{ display: client.logoUrl ? "none" : "block" }}>
+                {getInitials(client.name)}
+              </span>
             </div>
             <div className={styles.avatarRing} />
           </div>
@@ -157,32 +201,49 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={styles.pipelineHeader}>
             <div className={styles.pipelineTitle}>
               <div className={styles.tabSwitcher}>
-                <button className={`${styles.tabBtn} ${activeTab === "pipeline" ? styles.tabBtnActive : ""}`} onClick={() => setActiveTab("pipeline")}>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "pipeline" ? styles.tabBtnActive : ""}`}
+                  onClick={() => setActiveTab("pipeline")}
+                >
                   <FiList size={13} /> Pipeline
                 </button>
-                <button className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabBtnActive : ""}`} onClick={() => setActiveTab("calendar")}>
+                <button
+                  className={`${styles.tabBtn} ${activeTab === "calendar" ? styles.tabBtnActive : ""}`}
+                  onClick={() => setActiveTab("calendar")}
+                >
                   <FiCalendar size={13} /> Calendar
                 </button>
               </div>
-              {isNavigating && activeTab === "pipeline" && <span className={styles.loadingText}>Loading...</span>}
+              {isPending && activeTab === "pipeline" && (
+                <span className={styles.loadingText}>Loading...</span>
+              )}
             </div>
 
             <div className={styles.pipelineActions}>
               {pendingCount > 0 && (
-                <button className={styles.notifyBtn} disabled={notifying}
+                <button
+                  className={styles.notifyBtn}
+                  disabled={notifying}
                   onClick={async () => {
-                    setNotifying(true); setNotifyResult(null);
+                    setNotifying(true);
+                    setNotifyResult(null);
                     try {
                       const result = await notifyClient(client.id);
-                      setNotifyResult({ type: "success", message: `Email sent to ${result.notified.join(", ")} · ${result.pendingCount} item${result.pendingCount > 1 ? "s" : ""}` });
+                      setNotifyResult({
+                        type: "success",
+                        message: `Email sent to ${result.notified.join(", ")} · ${result.pendingCount} item${result.pendingCount > 1 ? "s" : ""}`,
+                      });
                     } catch (err) {
                       setNotifyResult({ type: "error", message: err.message });
                     } finally {
                       setNotifying(false);
                       setTimeout(() => setNotifyResult(null), 6000);
                     }
-                  }}>
-                  {notifying ? <><span className={styles.notifySpinner} /> Sending...</> : <><FiBell size={13} /> Notify Client</>}
+                  }}
+                >
+                  {notifying
+                    ? <><span className={styles.notifySpinner} /> Sending...</>
+                    : <><FiBell size={13} /> Notify Client</>}
                 </button>
               )}
               <button className={styles.primaryBtn} onClick={() => setEditingPost("NEW")}>
@@ -194,58 +255,63 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           {/* ── STATUS FILTER BAR ── */}
           {activeTab === "pipeline" && (
             <div className={styles.filterBar}>
-              {[
-                { key: "ALL", label: "All", count: client.posts.length, activeColor: null },
-                { key: "PENDING_REVIEW", label: "Pending", count: client.posts.filter(p => p.status === "PENDING_REVIEW").length, activeColor: "#b45309", activeBorder: "rgba(180,83,9,0.3)", activeBg: "rgba(180,83,9,0.06)" },
-                { key: "APPROVED", label: "Approved", count: client.posts.filter(p => p.status === "APPROVED").length, activeColor: "#16a34a", activeBorder: "rgba(22,163,74,0.3)", activeBg: "rgba(22,163,74,0.06)" },
-                { key: "CHANGES_REQUESTED", label: "Changes", count: client.posts.filter(p => p.status === "CHANGES_REQUESTED").length, activeColor: "#dc2626", activeBorder: "rgba(220,38,38,0.25)", activeBg: "rgba(220,38,38,0.06)" },
-                { key: "DRAFT", label: "Draft", count: client.posts.filter(p => p.status === "DRAFT").length, activeColor: null },
-              ].map(f => (
-                <button
-                  key={f.key}
-                  className={`${styles.filterBtn} ${filterStatus === f.key ? styles.filterBtnActive : ""}`}
-                  onClick={() => setFilterStatus(f.key)}
-                  style={filterStatus === f.key && f.activeColor ? {
-                    color: f.activeColor,
-                    borderColor: f.activeBorder,
-                    background: f.activeBg,
-                  } : {}}
-                >
-                  {f.label}
-                  {f.count > 0 && (
-                    <span
-                      className={`${styles.filterCount} ${filterStatus === f.key ? styles.filterCountActive : ""}`}
-                      style={filterStatus === f.key && f.activeColor ? { background: f.activeBg, color: f.activeColor } : {}}
-                    >
-                      {f.count}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {FILTER_CONFIG.map(f => {
+                const count = statusCounts[f.key] ?? 0;
+                const isActive = filterStatus === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    className={`${styles.filterBtn} ${isActive ? styles.filterBtnActive : ""}`}
+                    onClick={() => setFilter(f.key)}
+                    disabled={isPending}
+                    style={isActive && f.activeColor ? {
+                      color: f.activeColor,
+                      borderColor: f.activeBorder,
+                      background: f.activeBg,
+                    } : {}}
+                  >
+                    {f.label}
+                    {count > 0 && (
+                      <span
+                        className={`${styles.filterCount} ${isActive ? styles.filterCountActive : ""}`}
+                        style={isActive && f.activeColor
+                          ? { background: f.activeBg, color: f.activeColor }
+                          : {}}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {notifyResult && (
-            <div className={styles.notifyToast} style={{
-              background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
-              border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
-              color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
-              margin: "0 24px", marginTop: "12px",
-            }}>
+            <div
+              className={styles.notifyToast}
+              style={{
+                background: notifyResult.type === "success" ? "rgba(22,163,74,0.08)" : "rgba(220,38,38,0.08)",
+                border: `1px solid ${notifyResult.type === "success" ? "rgba(22,163,74,0.25)" : "rgba(220,38,38,0.25)"}`,
+                color: notifyResult.type === "success" ? "#16a34a" : "#dc2626",
+                margin: "0 24px",
+                marginTop: "12px",
+              }}
+            >
               {notifyResult.type === "success" ? "✓ " : "⚠ "}{notifyResult.message}
             </div>
           )}
 
           {/* ── PIPELINE TAB ── */}
           {activeTab === "pipeline" && (
-            <div className={styles.pipelineBody}>
+            <div className={`${styles.pipelineBody} ${isPending ? styles.tableLoading : ""}`}>
               {totalPosts === 0 ? (
                 <div className={styles.emptyPipeline}>
                   <FiYoutube size={32} />
                   <p>No content uploaded yet.</p>
                   <span>Upload a video/image to start the approval process.</span>
                 </div>
-              ) : filteredPosts.length === 0 ? (
+              ) : posts.length === 0 ? (
                 <div className={styles.emptyPipeline}>
                   <FiList size={28} />
                   <p>No posts with this status.</p>
@@ -254,7 +320,7 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
               ) : (
                 <>
                   <div className={styles.tableWrapper}>
-                    <table className={`${styles.table} ${isNavigating ? styles.tableLoading : ""}`}>
+                    <table className={styles.table}>
                       <thead>
                         <tr>
                           <th>Title</th>
@@ -267,8 +333,14 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredPosts.map(post => (
-                          <tr key={post.id} style={{ opacity: deletingPostId === post.id ? 0.4 : 1, transition: "opacity 200ms" }}>
+                        {posts.map(post => (
+                          <tr
+                            key={post.id}
+                            style={{
+                              opacity: deletingPostId === post.id ? 0.4 : 1,
+                              transition: "opacity 200ms",
+                            }}
+                          >
                             <td className={styles.cellTitle}>
                               <div className={styles.cellTitleInner}>
                                 <span className={styles.cellTitleText}>{post.title}</span>
@@ -281,7 +353,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                                 )}
                               </div>
                             </td>
-                            <td className={styles.cellPlatform}>{post.targetPlatform} {post.contentType}</td>
+                            <td className={styles.cellPlatform}>
+                              {post.targetPlatform} {post.contentType}
+                            </td>
                             <td>
                               <span className={`${styles.statusBadge} ${styles[post.status]}`}>
                                 {post.status.replace("_", " ")}
@@ -289,23 +363,27 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                             </td>
                             <td className={styles.cellDate}>
                               {post.scheduledDate
-                                ? new Date(post.scheduledDate).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })
+                                ? new Date(post.scheduledDate).toLocaleDateString("en-IN", {
+                                    timeZone: "Asia/Kolkata", month: "short", day: "numeric",
+                                  })
                                 : <span style={{ color: "var(--muted)", fontFamily: "var(--mono)", fontSize: "10px" }}>—</span>}
                             </td>
                             <td className={styles.cellDate}>
-                              {new Date(post.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric' })}
+                              {new Date(post.createdAt).toLocaleDateString("en-IN", {
+                                timeZone: "Asia/Kolkata", month: "short", day: "numeric",
+                              })}
                             </td>
                             <td className={styles.cellDate}>
                               {post.approvedAt ? (
                                 <>
                                   <span className={styles.dateMain}>
-                                    {new Date(post.approvedAt).toLocaleDateString('en-IN', {
-                                      timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short'
+                                    {new Date(post.approvedAt).toLocaleDateString("en-IN", {
+                                      timeZone: "Asia/Kolkata", day: "numeric", month: "short",
                                     })}
                                   </span>
                                   <span className={styles.dateTime} suppressHydrationWarning>
-                                    {new Date(post.approvedAt).toLocaleTimeString('en-IN', {
-                                      timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true
+                                    {new Date(post.approvedAt).toLocaleTimeString("en-IN", {
+                                      timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true,
                                     })}
                                   </span>
                                 </>
@@ -339,22 +417,41 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                     </table>
                   </div>
 
-                  {totalPages > 1 && filterStatus === "ALL" && (
+                  {/* Pagination only shown on ALL, non-filtered view */}
+                  {!isFiltered && totalPages > 1 && (
                     <div className={styles.pagination}>
                       <span className={styles.pageInfo}>
-                        Showing {(currentPage - 1) * postsPerPage + 1} to {Math.min(currentPage * postsPerPage, totalPosts)} of {totalPosts}
+                        Showing {(currentPage - 1) * postsPerPage + 1} to{" "}
+                        {Math.min(currentPage * postsPerPage, totalPosts)} of {totalPosts}
                       </span>
                       <div className={styles.pageControls}>
-                        <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage - 1)} disabled={currentPage === 1 || isNavigating}>
+                        <button
+                          className={styles.pageBtn}
+                          onClick={() => navigateToPage(currentPage - 1)}
+                          disabled={currentPage === 1 || isPending}
+                        >
                           <FiChevronLeft size={14} /> Prev
                         </button>
                         <div className={styles.pageNumbers}>
                           <span className={styles.activePage}>{currentPage}</span> / {totalPages}
                         </div>
-                        <button className={styles.pageBtn} onClick={() => navigateToPage(currentPage + 1)} disabled={currentPage === totalPages || isNavigating}>
+                        <button
+                          className={styles.pageBtn}
+                          onClick={() => navigateToPage(currentPage + 1)}
+                          disabled={currentPage === totalPages || isPending}
+                        >
                           Next <FiChevronRight size={14} />
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Filtered result count */}
+                  {isFiltered && (
+                    <div className={styles.pagination}>
+                      <span className={styles.pageInfo}>
+                        {posts.length} post{posts.length !== 1 ? "s" : ""} with this status
+                      </span>
                     </div>
                   )}
                 </>
@@ -370,20 +467,26 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           )}
         </section>
 
-        {/* ── BENTO GRID (moved below pipeline) ── */}
+        {/* ── BENTO GRID ── */}
         <div className={styles.bento}>
           <div className={`${styles.card} ${styles.cardFinancial}`}>
             <div className={styles.cardLabel}><FiActivity size={12} /> Engagement</div>
             <div className={styles.financialBlock}>
               <div className={styles.financialRow}>
                 <span className={styles.financialMeta}>Monthly Retainer</span>
-                <span className={styles.financialBig}>₹{client.packageAmount?.toLocaleString("en-IN") ?? "0"}</span>
+                <span className={styles.financialBig}>
+                  ₹{client.packageAmount?.toLocaleString("en-IN") ?? "0"}
+                </span>
               </div>
               <div className={styles.financialDivider} />
               <div className={styles.financialRow}>
                 <span className={styles.financialMeta}>Start Date</span>
                 <span className={styles.financialMid}>
-                  {client.startDate ? new Date(client.startDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Pending"}
+                  {client.startDate
+                    ? new Date(client.startDate).toLocaleDateString("en-IN", {
+                        day: "2-digit", month: "short", year: "numeric",
+                      })
+                    : "Pending"}
                 </span>
               </div>
             </div>
@@ -392,22 +495,35 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={`${styles.card} ${styles.cardStats}`}>
             <div className={styles.cardLabel}><FiTrendingUp size={12} /> Content Stats</div>
             <div className={styles.statsGrid}>
-              <div className={styles.statBox}><span className={styles.statNum}>{totalPosts}</span><span className={styles.statDesc}>Total Posts</span></div>
-              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentGreen}`}>{approvedCount}</span><span className={styles.statDesc}>Approved</span></div>
-              <div className={styles.statBox}><span className={`${styles.statNum} ${styles.accentAmber}`}>{totalPosts - approvedCount}</span><span className={styles.statDesc}>Pending</span></div>
+              <div className={styles.statBox}>
+                <span className={styles.statNum}>{totalPosts}</span>
+                <span className={styles.statDesc}>Total Posts</span>
+              </div>
+              <div className={styles.statBox}>
+                <span className={`${styles.statNum} ${styles.accentGreen}`}>{approvedCount}</span>
+                <span className={styles.statDesc}>Approved</span>
+              </div>
+              <div className={styles.statBox}>
+                <span className={`${styles.statNum} ${styles.accentAmber}`}>{totalPosts - approvedCount}</span>
+                <span className={styles.statDesc}>Pending</span>
+              </div>
             </div>
             {totalPosts > 0 && (
               <div className={styles.progressBar}>
-                <div className={styles.progressFill} style={{ width: `${(approvedCount / totalPosts) * 100}%` }} />
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${(approvedCount / totalPosts) * 100}%` }}
+                />
               </div>
             )}
           </div>
-          {/* ── MONTHLY QUOTA PROGRESS ── */}
+
           {client.quotas.length > 0 && (
             <div className={`${styles.card} ${styles.cardQuotaProgress}`}>
               <TeamQuotaProgress quotas={client.quotas} posts={currentMonthPosts} />
             </div>
           )}
+
           <div className={`${styles.card} ${styles.cardSocial}`}>
             <div className={styles.cardLabelRow}>
               <span className={styles.cardLabel}><FiGlobe size={12} /> Brand Channels</span>
@@ -415,12 +531,25 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
             </div>
             <div className={styles.socialList}>
               {socialLinks.map(link => (
-                <div key={link.id} className={`${styles.socialRow} ${!link.url ? styles.socialDim : ""}`} style={{ "--platform-color": link.color }}>
+                <div
+                  key={link.id}
+                  className={`${styles.socialRow} ${!link.url ? styles.socialDim : ""}`}
+                  style={{ "--platform-color": link.color }}
+                >
                   <div className={styles.socialIcon}>{link.icon}</div>
                   <span className={styles.socialLabel}>{link.label}</span>
                   {link.url ? (
-                    <a href={link.url.startsWith("http") ? link.url : `https://${link.url}`} target="_blank" rel="noreferrer" className={styles.socialLink}><FiExternalLink size={11} /></a>
-                  ) : <span className={styles.socialEmpty}>—</span>}
+                    <a
+                      href={link.url.startsWith("http") ? link.url : `https://${link.url}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.socialLink}
+                    >
+                      <FiExternalLink size={11} />
+                    </a>
+                  ) : (
+                    <span className={styles.socialEmpty}>—</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -429,7 +558,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={`${styles.card} ${styles.cardQuotas}`}>
             <div className={styles.cardLabelRow}>
               <span className={styles.cardLabel}><FiLayers size={12} /> Monthly Quotas</span>
-              <button className={styles.manageBtn} onClick={() => setIsQuotaModalOpen(true)}><FiGrid size={12} /> Manage</button>
+              <button className={styles.manageBtn} onClick={() => setIsQuotaModalOpen(true)}>
+                <FiGrid size={12} /> Manage
+              </button>
             </div>
             {client.quotas.length > 0 ? (
               <div className={styles.quotaList}>
@@ -442,9 +573,14 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                     <div className={styles.quotaRight}>
                       <span className={styles.quotaNum}>{q.amount}</span>
                       <span className={styles.quotaUnit}>/ mo</span>
-                      <button type="button"
-                        onClick={async () => { if (window.confirm("Delete this quota?")) await deleteClientQuota(q.id, client.id); }}
-                        className={styles.deleteQuotaBtn}>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (window.confirm("Delete this quota?"))
+                            await deleteClientQuota(q.id, client.id);
+                        }}
+                        className={styles.deleteQuotaBtn}
+                      >
                         <FiTrash2 size={13} />
                       </button>
                     </div>
@@ -456,10 +592,13 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                 <FiPackage size={28} />
                 <p>No quotas configured</p>
                 <span>Set up this client's monthly content package</span>
-                <button className={styles.setupBtn} onClick={() => setIsQuotaModalOpen(true)}><FiZap size={13} /> Set Up Plan</button>
+                <button className={styles.setupBtn} onClick={() => setIsQuotaModalOpen(true)}>
+                  <FiZap size={13} /> Set Up Plan
+                </button>
               </div>
             )}
           </div>
+
           {/* ── FESTIVE REQUESTS CARD ── */}
           <div className={`${styles.card} ${styles.cardFestive}`}>
             <div className={styles.cardLabelRow}>
@@ -467,7 +606,14 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                 <span>🪔</span> Festive Post Requests
               </span>
               {client.festiveRequests?.filter(r => r.status === "PENDING").length > 0 && (
-                <span className={styles.cardBadge} style={{ background: "rgba(217,119,6,0.1)", border: "1px solid rgba(217,119,6,0.25)", color: "#b45309" }}>
+                <span
+                  className={styles.cardBadge}
+                  style={{
+                    background: "rgba(217,119,6,0.1)",
+                    border: "1px solid rgba(217,119,6,0.25)",
+                    color: "#b45309",
+                  }}
+                >
                   {client.festiveRequests.filter(r => r.status === "PENDING").length} pending
                 </span>
               )}
@@ -494,14 +640,17 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                         })}
                       </span>
                     </div>
-                    <FestiveStatusBadge requestId={r.id} clientId={client.id} currentStatus={r.status} />
+                    <FestiveStatusBadge
+                      requestId={r.id}
+                      clientId={client.id}
+                      currentStatus={r.status}
+                    />
                   </div>
                 ))}
               </div>
             )}
           </div>
         </div>
-
       </div>
 
       {/* ── MODALS ── */}
@@ -510,7 +659,10 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           post={editingPost === "NEW" ? null : editingPost}
           clientId={client.id}
           onClose={() => setEditingPost(null)}
-          onSuccess={() => { setEditingPost(null); router.push(`${pathname}?page=1`); }}
+          onSuccess={() => {
+            setEditingPost(null);
+            router.push(`${pathname}?page=1`);
+          }}
         />
       )}
 
@@ -519,9 +671,17 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>Edit Brand Profile</h2>
-              <button type="button" onClick={() => setIsEditModalOpen(false)} className={styles.closeBtn}><FiX size={20} /></button>
+              <button type="button" onClick={() => setIsEditModalOpen(false)} className={styles.closeBtn}>
+                <FiX size={20} />
+              </button>
             </div>
-            <form action={async (fd) => { await updateClientCore(client.id, fd); setIsEditModalOpen(false); }} className={styles.modalForm}>
+            <form
+              action={async (fd) => {
+                await updateClientCore(client.id, fd);
+                setIsEditModalOpen(false);
+              }}
+              className={styles.modalForm}
+            >
               <div className={styles.formGrid}>
                 <div className={styles.inputGroup}><label>Brand Name</label><input name="name" defaultValue={client.name} required className={styles.inputField} /></div>
                 <div className={styles.inputGroup}><label>Industry</label><input name="brandDescription" defaultValue={client.brandDescription} className={styles.inputField} /></div>
@@ -537,7 +697,9 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
                 <div className={styles.inputGroup}><label>LinkedIn</label><input name="linkedinUrl" defaultValue={client.linkedinUrl} className={styles.inputField} /></div>
                 <div className={styles.inputGroup}><label>WhatsApp</label><input name="whatsappNumber" defaultValue={client.whatsappNumber} className={styles.inputField} /></div>
               </div>
-              <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}>Save Changes</button></div>
+              <div className={styles.modalFooter}>
+                <button type="submit" className={styles.saveBtn}>Save Changes</button>
+              </div>
             </form>
           </div>
         </div>
@@ -548,48 +710,63 @@ export default function ClientDashboard({ client, totalPosts, approvedCount, pen
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
               <h2>Add Content Quota</h2>
-              <button type="button" onClick={() => setIsQuotaModalOpen(false)} className={styles.closeBtn}><FiX size={20} /></button>
+              <button type="button" onClick={() => setIsQuotaModalOpen(false)} className={styles.closeBtn}>
+                <FiX size={20} />
+              </button>
             </div>
-            <form action={async (fd) => { await addClientQuota(client.id, fd); setIsQuotaModalOpen(false); }} className={styles.modalForm}>
+            <form
+              action={async (fd) => {
+                await addClientQuota(client.id, fd);
+                setIsQuotaModalOpen(false);
+              }}
+              className={styles.modalForm}
+            >
               <div className={styles.formGrid}>
                 <div className={styles.inputGroup}>
                   <label>Platform</label>
                   <select name="platform" className={styles.inputField}>
-                    <option value="INSTAGRAM">Instagram</option><option value="YOUTUBE">YouTube</option><option value="LINKEDIN">LinkedIn</option><option value="FACEBOOK">Facebook</option>
+                    <option value="INSTAGRAM">Instagram</option>
+                    <option value="YOUTUBE">YouTube</option>
+                    <option value="LINKEDIN">LinkedIn</option>
+                    <option value="FACEBOOK">Facebook</option>
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
                   <label>Content Type</label>
                   <select name="contentType" className={styles.inputField}>
-                    <option value="REEL">Reel / Short</option><option value="POST">Static Post</option><option value="STORY">Story</option><option value="VIDEO_LONG">Long Form Video</option>
+                    <option value="REEL">Reel / Short</option>
+                    <option value="POST">Static Post</option>
+                    <option value="STORY">Story</option>
+                    <option value="VIDEO_LONG">Long Form Video</option>
                   </select>
                 </div>
-                <div className={styles.inputGroup}><label>Amount per Month</label><input name="amount" type="number" defaultValue={4} min={1} required className={styles.inputField} /></div>
+                <div className={styles.inputGroup}>
+                  <label>Amount per Month</label>
+                  <input name="amount" type="number" defaultValue={4} min={1} required className={styles.inputField} />
+                </div>
               </div>
-              <div className={styles.modalFooter}><button type="submit" className={styles.saveBtn}><FiPlus /> Add Quota</button></div>
+              <div className={styles.modalFooter}>
+                <button type="submit" className={styles.saveBtn}><FiPlus /> Add Quota</button>
+              </div>
             </form>
           </div>
-
         </div>
-
       )}
     </div>
   );
 }
 
-// ── Inline component for festive request status management ──
-
-
+// ── Festive status badge ──
 function FestiveStatusBadge({ requestId, clientId, currentStatus }) {
-  const [status, setStatus] = useState(currentStatus);
+  const [status, setStatus]   = useState(currentStatus);
   const [loading, setLoading] = useState(false);
 
   const STATUS_OPTIONS = ["PENDING", "ACKNOWLEDGED", "IN_PROGRESS", "DONE"];
-  const STATUS_STYLES = {
-    PENDING: { bg: "rgba(180,83,9,0.1)", color: "#b45309", border: "rgba(180,83,9,0.2)", label: "Pending" },
+  const STATUS_STYLES  = {
+    PENDING:      { bg: "rgba(180,83,9,0.1)",   color: "#b45309", border: "rgba(180,83,9,0.2)",   label: "Pending" },
     ACKNOWLEDGED: { bg: "rgba(59,130,246,0.1)", color: "#1d4ed8", border: "rgba(59,130,246,0.2)", label: "Acknowledged" },
-    IN_PROGRESS: { bg: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "rgba(124,58,237,0.2)", label: "In Progress" },
-    DONE: { bg: "rgba(22,163,74,0.1)", color: "#16a34a", border: "rgba(22,163,74,0.2)", label: "Done" },
+    IN_PROGRESS:  { bg: "rgba(124,58,237,0.1)", color: "#7c3aed", border: "rgba(124,58,237,0.2)", label: "In Progress" },
+    DONE:         { bg: "rgba(22,163,74,0.1)",  color: "#16a34a", border: "rgba(22,163,74,0.2)",  label: "Done" },
   };
 
   const s = STATUS_STYLES[status] || STATUS_STYLES.PENDING;

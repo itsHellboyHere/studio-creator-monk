@@ -5,12 +5,18 @@ import { getHolidaysForMonth } from "@/app/(client)/portal/[clientId]/indianHoli
 
 const POSTS_PER_PAGE = 15;
 
+const VALID_FILTERS = ["ALL", "PENDING_REVIEW", "APPROVED", "CHANGES_REQUESTED", "DRAFT"];
+
 export default async function ClientAdminPage({ params, searchParams }) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
 
   const clientId = resolvedParams.clientId;
   const currentPage = Math.max(1, parseInt(resolvedSearchParams?.page || "1", 10));
+  const filterStatus = VALID_FILTERS.includes(resolvedSearchParams?.filter)
+    ? resolvedSearchParams.filter
+    : "ALL";
+  const isFiltered = filterStatus !== "ALL";
 
   const now = new Date();
   const currentYear  = now.getFullYear();
@@ -20,20 +26,18 @@ export default async function ClientAdminPage({ params, searchParams }) {
   const monthStart   = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd     = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
+  const postsQuery = isFiltered
+    ? { where: { status: filterStatus }, orderBy: { createdAt: "desc" } }
+    : { take: POSTS_PER_PAGE, skip: (currentPage - 1) * POSTS_PER_PAGE, orderBy: { createdAt: "desc" } };
+
   const [totalPosts, client, approvedCount, pendingCount, currentMonthPosts] = await Promise.all([
     db.post.count({ where: { clientId } }),
     db.client.findUnique({
       where: { id: clientId },
       include: {
         quotas: true,
-        posts: {
-          take: POSTS_PER_PAGE,
-          skip: (currentPage - 1) * POSTS_PER_PAGE,
-          orderBy: { createdAt: "desc" },
-        },
-        festiveRequests: {
-          orderBy: { festivalDate: "asc" },
-        },
+        posts: postsQuery,
+        festiveRequests: { orderBy: { festivalDate: "asc" } },
       },
     }),
     db.post.count({ where: { clientId, status: "APPROVED" } }),
@@ -48,6 +52,22 @@ export default async function ClientAdminPage({ params, searchParams }) {
   ]);
 
   if (!client) return notFound();
+
+  // Attach clientId to posts (needed since postsQuery has no clientId filter in include)
+  // and count per-status for filter bar badges — server-authoritative, not page-slice
+  const [pendingReviewCount, changesCount, draftCount] = await Promise.all([
+    db.post.count({ where: { clientId, status: "PENDING_REVIEW" } }),
+    db.post.count({ where: { clientId, status: "CHANGES_REQUESTED" } }),
+    db.post.count({ where: { clientId, status: "DRAFT" } }),
+  ]);
+
+  const statusCounts = {
+    ALL: totalPosts,
+    PENDING_REVIEW: pendingReviewCount,
+    APPROVED: approvedCount,
+    CHANGES_REQUESTED: changesCount,
+    DRAFT: draftCount,
+  };
 
   const holidays = [
     ...getHolidaysForMonth(currentYear, currentMonth),
@@ -64,6 +84,9 @@ export default async function ClientAdminPage({ params, searchParams }) {
       postsPerPage={POSTS_PER_PAGE}
       holidays={holidays}
       currentMonthPosts={currentMonthPosts}
+      filterStatus={filterStatus}
+      isFiltered={isFiltered}
+      statusCounts={statusCounts}
     />
   );
 }
