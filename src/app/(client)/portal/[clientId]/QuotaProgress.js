@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import styles from "./portal.module.css";
+import styles from "@/app/(client)/portal/[clientId]/styles/portal.module.css";
 
 const PLATFORM_META = {
   INSTAGRAM: { label: "Instagram", color: "#ec4899", bg: "#fdf2f8" },

@@ -124,6 +124,9 @@ useEffect(() => {
     }).slice(0, 3);
   }, [holidays, client.festiveRequests]);
 
+  // ── derived count used only for the Calendar nav badge ──
+  const festivalsCount = unrequestedUpcoming.length;
+
   const handleReview = async (action) => {
     if (action === "REJECT" && !feedback.trim()) { alert("Please provide feedback before requesting changes."); return; }
     setSubmitting(true);
@@ -170,7 +173,8 @@ useEffect(() => {
                 className={`${styles.navLink} ${activeNav === item.id ? styles.navLinkActive : ""}`}
                 onClick={(e) => { e.preventDefault(); scrollTo(item.id); }}>
                 {item.label}
-                {item.id === "content" && pending.length > 0 && <span className={styles.navBadge}>{pending.length}</span>}
+                {item.id === "content"  && pending.length > 0 && <span className={styles.navBadge}>{pending.length}</span>}
+                {item.id === "calendar" && festivalsCount  > 0 && <span className={styles.navBadgeFestive}>{festivalsCount}</span>}
               </a>
             ))}
           </div>
@@ -213,7 +217,8 @@ useEffect(() => {
                   className={`${styles.mobileNavLink} ${activeNav === item.id ? styles.mobileNavLinkActive : ""}`}
                   onClick={(e) => { e.preventDefault(); scrollTo(item.id); }}>
                   <span>{item.label}</span>
-                  {item.id === "content" && pending.length > 0 && <span className={styles.navBadge}>{pending.length}</span>}
+                  {item.id === "content"  && pending.length > 0 && <span className={styles.navBadge}>{pending.length}</span>}
+                  {item.id === "calendar" && festivalsCount  > 0 && <span className={styles.navBadgeFestive}>{festivalsCount}</span>}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ marginLeft: "auto", opacity: 0.35 }}><polyline points="9 18 15 12 9 6" /></svg>
                 </a>
               ))}

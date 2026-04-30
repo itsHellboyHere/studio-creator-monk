@@ -648,3 +648,29 @@
   .qpBigApproved, .qpBigTotal { font-size: 1.5rem; }
   .qpBar { width: 56px; }
 }
+
+/* ── Festive Nav Badge (amber/gold) ── */
+.navBadgeFestive {
+  background: #f59e0b; color: white;
+  font-size: 0.58rem; font-weight: 700;
+  min-width: 16px; height: 16px; border-radius: 8px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── Festive Pill (right side of nav, amber tone) ── */
+.festivePill {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+  font-size: 0.72rem; font-weight: 600;
+  padding: 0.3rem 0.8rem; border-radius: 999px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s; white-space: nowrap;
+}
+.festivePill:hover { background: #fef3c7; }
+
+/* Festive pulsing dot (amber) */
+.festiveDot {
+  width: 7px; height: 7px; background: #f59e0b;
+  border-radius: 50%; flex-shrink: 0;
+  animation: ping 2s ease-in-out infinite;
+}
