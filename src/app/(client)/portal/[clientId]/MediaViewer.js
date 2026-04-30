@@ -65,7 +65,7 @@ function MediaRenderer({ url, zoom, onLoad, onError, className }) {
   if (isVideoUrl(url)) {
     return (
       <>
-        {loading && <Spinner />}
+        {/* {loading && <Spinner />} */}
         <video
           key={url}
           className={className || styles.video}
