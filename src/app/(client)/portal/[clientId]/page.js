@@ -37,7 +37,11 @@ export default async function ClientPortalPage({ params }) {
       where: { id: clientId },
       include: {
         quotas: true,
-        posts: { orderBy: { createdAt: "desc" } },
+        posts: {
+          // Clients ko DRAFT nahi dikhega, admin/team ko sab dikhega
+          where: isAdminOrTeam ? undefined : { status: { not: "DRAFT" } },
+          orderBy: { createdAt: "desc" },
+        },
         festiveRequests: { orderBy: { festivalDate: "asc" } },
       },
     }),
