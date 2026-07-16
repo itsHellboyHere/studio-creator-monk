@@ -44,50 +44,84 @@ export const INDIAN_HOLIDAYS_2026 = [
   { name: "Muharram",                   date: { iso: "2026-06-26" }, type: ["religious"] },  // ✅ CORRECTED
   { name: "Father's Day",               date: { iso: "2026-06-21" }, type: ["observance"] },
   { name: "International Yoga Day",     date: { iso: "2026-06-21" }, type: ["national", "international"] },
-
   // ── JULY 2026 ──
-  { name: "Guru Purnima",               date: { iso: "2026-07-09" }, type: ["religious"] },
-  { name: "World Population Day",       date: { iso: "2026-07-11" }, type: ["observance", "international"] },
+  { name: "National Doctor’s Day",              date: { iso: "2026-07-01" }, type: ["observance", "national"] },
+  { name: "Chartered Accountant Day",           date: { iso: "2026-07-01" }, type: ["observance", "national"] },
+  { name: "International Plastic Bag Free Day", date: { iso: "2026-07-03" }, type: ["observance", "international"] },
+  { name: "World Chocolate Day",                date: { iso: "2026-07-07" }, type: ["observance", "international"] },
+  { name: "World Population Day",               date: { iso: "2026-07-11" }, type: ["observance", "international"] },
+  { name: "French Fry Day",                     date: { iso: "2026-07-12" }, type: ["observance"] },
+  { name: "Rath Yatra",                         date: { iso: "2026-07-16" }, type: ["religious"] },
+  { name: "World Emoji Day",                    date: { iso: "2026-07-17" }, type: ["observance", "international"] },
+  // { name: "Ice Cream Day",                      date: { iso: "2026-07-19" }, type: ["observance"] },
+  { name: "National Mango Day",                 date: { iso: "2026-07-22" }, type: ["observance", "national"] },
+  { name: "Kargil Vijay Diwas",                 date: { iso: "2026-07-26" }, type: ["national"] },
+  { name: "Parents Day in India",               date: { iso: "2026-07-26" }, type: ["observance"] },
+  { name: "Guru Purnima",                       date: { iso: "2026-07-29" }, type: ["religious"] },
 
   // ── AUGUST 2026 ──
-  { name: "Friendship Day",             date: { iso: "2026-08-02" }, type: ["observance"] },
-  { name: "Independence Day",           date: { iso: "2026-08-15" }, type: ["national"] },
-  { name: "Raksha Bandhan",             date: { iso: "2026-08-21" }, type: ["religious"] },
-  { name: "Janmashtami",                date: { iso: "2026-09-04" }, type: ["religious"] },  // ✅ MOVED TO SEP 4 (correct)
-  { name: "Milad un Nabi (Id-e-Milad)", date: { iso: "2026-08-26" }, type: ["religious"] },  // ✅ CORRECTED
+  { name: "International Friendship Day",       date: { iso: "2026-08-02" }, type: ["observance", "international"] },
+  { name: "International Beer Day",             date: { iso: "2026-08-07" }, type: ["observance", "international"] },
+  { name: "International Cat Day",              date: { iso: "2026-08-08" }, type: ["observance", "international"] },
+  { name: "Book Lovers Day",                    date: { iso: "2026-08-09" }, type: ["observance", "international"] },
+  { name: "International Youth Day",            date: { iso: "2026-08-12" }, type: ["observance", "international"] },
+  { name: "World Elephant Day",                 date: { iso: "2026-08-12" }, type: ["observance", "international"] },
+  { name: "Independence Day (India)",           date: { iso: "2026-08-15" }, type: ["national"] },
+  { name: "Parsi New Year",                     date: { iso: "2026-08-16" }, type: ["religious"] },
+  { name: "World Photography Day",              date: { iso: "2026-08-19" }, type: ["observance", "international"] },
+  { name: "World Senior Citizens Day",          date: { iso: "2026-08-21" }, type: ["observance", "international"] },
+  { name: "International Dog Day",              date: { iso: "2026-08-26" }, type: ["observance", "international"] },
+  { name: "Id-E-Milad (Eid-e-Milad-un-Nabi)",   date: { iso: "2026-08-26" }, type: ["religious"] },
+  { name: "Onam (Thiruvonam)",                  date: { iso: "2026-08-26" }, type: ["religious", "harvest"] },
+  { name: "Raksha Bandhan",                     date: { iso: "2026-08-28" }, type: ["religious"] },
+  { name: "National Sports Day",                date: { iso: "2026-08-29" }, type: ["national", "observance"] },
 
   // ── SEPTEMBER 2026 ──
-  { name: "Janmashtami (Observed)",     date: { iso: "2026-09-04" }, type: ["religious"] },  // ✅ CORRECT DATE
-  { name: "Onam",                       date: { iso: "2026-09-04" }, type: ["religious", "harvest"] },  // Onam starts Sep 4 [citation:9]
-  { name: "Ganesh Chaturthi",           date: { iso: "2026-09-14" }, type: ["religious"] },  // ✅ CORRECTED - Sep 14, not Aug 31
-  { name: "International Literacy Day", date: { iso: "2026-09-08" }, type: ["observance", "international"] },
-  { name: "World Tourism Day",          date: { iso: "2026-09-27" }, type: ["observance", "international"] },
+  { name: "Janmashtami",                        date: { iso: "2026-09-04" }, type: ["religious"] },
+  { name: "Teacher’s Day",                      date: { iso: "2026-09-05" }, type: ["national", "observance"] },
+  { name: "World First Aid Day",                date: { iso: "2026-09-12" }, type: ["observance", "international"] },
+  { name: "Grandparents’ Day",                  date: { iso: "2026-09-13" }, type: ["observance"] },
+  { name: "Ganesh Chaturthi",                   date: { iso: "2026-09-14" }, type: ["religious"] },
+  { name: "Engineer’s Day",                     date: { iso: "2026-09-15" }, type: ["national", "observance"] },
+  { name: "World Peace Day",                    date: { iso: "2026-09-21" }, type: ["observance", "international"] },
+  { name: "Ganesh Visarjan / Ananta Chaturdashi", date: { iso: "2026-09-25" }, type: ["religious"] },
+  { name: "World Pharmacy Day",                 date: { iso: "2026-09-25" }, type: ["observance", "international"] },
+  { name: "World Tourism Day",                  date: { iso: "2026-09-27" }, type: ["observance", "international"] },
+  { name: "World Heart Day",                    date: { iso: "2026-09-29" }, type: ["observance", "international"] },
 
   // ── OCTOBER 2026 ──
-  { name: "Gandhi Jayanti",             date: { iso: "2026-10-02" }, type: ["national"] },
-  { name: "Navratri Begins",            date: { iso: "2026-10-11" }, type: ["religious"] },
-  { name: "Dussehra",                   date: { iso: "2026-10-20" }, type: ["religious"] },  // ✅ CORRECTED
-  { name: "Sharad Purnima",             date: { iso: "2026-10-25" }, type: ["religious"] },
-  { name: "Karwa Chauth",               date: { iso: "2026-10-29" }, type: ["religious"] },
-  { name: "Halloween",                  date: { iso: "2026-10-31" }, type: ["observance"] },
-  { name: "World Mental Health Day",    date: { iso: "2026-10-10" }, type: ["observance", "international"] },
-
-  // ── NOVEMBER 2026 ──
-  { name: "Dhanteras",                  date: { iso: "2026-11-06" }, type: ["religious"] },
-  { name: "Naraka Chaturdashi (Choti Diwali)", date: { iso: "2026-11-07" }, type: ["religious"] },
-  { name: "Diwali",                     date: { iso: "2026-11-08" }, type: ["religious"] },  // ✅ CONFIRMED
-  { name: "Govardhan Puja",             date: { iso: "2026-11-09" }, type: ["religious"] },
-  { name: "Bhai Dooj",                  date: { iso: "2026-11-10" }, type: ["religious"] },
-  { name: "Chhath Puja",                date: { iso: "2026-11-12" }, type: ["religious"] },
-  { name: "Children's Day (India)",     date: { iso: "2026-11-14" }, type: ["national"] },
-  { name: "Guru Nanak Jayanti",         date: { iso: "2026-11-24" }, type: ["religious"] },  // ✅ CORRECTED
+  { name: "World Vegetarian Day",               date: { iso: "2026-10-01" }, type: ["observance", "international"] },
+  { name: "International Coffee Day",           date: { iso: "2026-10-01" }, type: ["observance", "international"] },
+  { name: "International Day of The Elderly",   date: { iso: "2026-10-01" }, type: ["observance", "international"] },
+  { name: "Gandhi Jayanti",                     date: { iso: "2026-10-02" }, type: ["national"] },
+  { name: "World Smile Day",                    date: { iso: "2026-10-02" }, type: ["observance", "international"] },
+  { name: "Noodles Day",                        date: { iso: "2026-10-06" }, type: ["observance"] },
+  { name: "Indian Air Force Day",               date: { iso: "2026-10-08" }, type: ["national"] },
+  { name: "World Egg Day",                      date: { iso: "2026-10-09" }, type: ["observance", "international"] },
+  { name: "World Mental Health Day",            date: { iso: "2026-10-10" }, type: ["observance", "international"] },
+  { name: "Navratri Day 1",                     date: { iso: "2026-10-11" }, type: ["religious"] },
+  { name: "International Girl Child Day",       date: { iso: "2026-10-11" }, type: ["observance", "international"] },
+  { name: "World Arthritis Day",                date: { iso: "2026-10-12" }, type: ["observance", "international"] },
+  { name: "National Students’ Day",             date: { iso: "2026-10-15" }, type: ["national", "observance"] },
+  { name: "National Boss Day",                  date: { iso: "2026-10-16" }, type: ["observance"] },
+  { name: "World Food Day",                     date: { iso: "2026-10-16" }, type: ["observance", "international"] },
+  { name: "Maha Ashtami",                       date: { iso: "2026-10-19" }, type: ["religious"] },
+  { name: "Dussehra",                           date: { iso: "2026-10-21" }, type: ["religious"] },
+  { name: "World Pasta Day",                    date: { iso: "2026-10-25" }, type: ["observance", "international"] },
+  { name: "Karva Chauth",                       date: { iso: "2026-10-29" }, type: ["religious"] },
+  { name: "World Psoriasis Day",                date: { iso: "2026-10-29" }, type: ["observance", "international"] },
+  { name: "Sardar Patel Jayanti",               date: { iso: "2026-10-31" }, type: ["national"] },
+  { name: "National Unity Day",                 date: { iso: "2026-10-31" }, type: ["national"] },
+  { name: "Halloween",                          date: { iso: "2026-10-31" }, type: ["observance", "international"] },
 
   // ── DECEMBER 2026 ──
-  { name: "World AIDS Day",             date: { iso: "2026-12-01" }, type: ["observance", "international"] },
-  { name: "Human Rights Day",           date: { iso: "2026-12-10" }, type: ["observance", "international"] },
-  { name: "Christmas Eve",              date: { iso: "2026-12-24" }, type: ["observance"] },
-  { name: "Christmas",                  date: { iso: "2026-12-25" }, type: ["religious"] },
-  { name: "New Year's Eve",             date: { iso: "2026-12-31" }, type: ["observance"] },
+  { name: "World Aids Day",                     date: { iso: "2026-12-01" }, type: ["observance", "international"] },
+  { name: "Indian Navy Day",                    date: { iso: "2026-12-04" }, type: ["national"] },
+  { name: "Human Rights Day",                   date: { iso: "2026-12-10" }, type: ["observance", "international"] },
+  { name: "Vijay Diwas (Indian Army)",          date: { iso: "2026-12-16" }, type: ["national"] },
+  { name: "Kisan Diwas (Farmers’ Day)",         date: { iso: "2026-12-23" }, type: ["national"] },
+  { name: "Christmas",                          date: { iso: "2026-12-25" }, type: ["religious", "international"] },
+  { name: "New Year’s Eve",                     date: { iso: "2026-12-31" }, type: ["observance", "international"] }
 ];
 
 export function getHolidaysForMonth(year, month) {
