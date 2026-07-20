@@ -149,20 +149,21 @@ model TeamProfile {
 
 model Post {
   id             String       @id @default(cuid())
-  title          String     
-  mediaUrls      String[]     // Was driveLink — array, first item is thumbnail/primary
-  caption        String?    
+  title          String
+  mediaUrls      String[]
+  caption        String?
   status         PostStatus   @default(DRAFT)
-  clientNote     String?    
- 
+  clientNote     String?
+  feedbackImages String[]     @default([]) 
+
   targetPlatform PlatformType?
   contentType    ContentType?
-  scheduledDate  DateTime? 
-  approvedAt     DateTime?  
+  scheduledDate  DateTime?
+  approvedAt     DateTime?
   clientId       String
   client         Client       @relation(fields: [clientId], references: [id])
-  
-  createdAt      DateTime     @default(now()) 
+
+  createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 }
 enum FestiveRequestStatus {

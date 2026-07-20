@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FiX, FiMessageSquare, FiClock, FiCalendar, FiChevronLeft, FiChevronRight, FiGrid } from "react-icons/fi";
 import FileUploader from "./FileUploader";
+import FeedbackImagesViewer from "./FeedbackImagesViewer";
 import { createDeliverable, updateDeliverable } from "./actions";
 import styles from "./clientPage.module.css";
 import uploaderStyles from "./fileUploader.module.css";
@@ -215,35 +216,33 @@ export default function DeliverableModal({ post, clientId, onClose, onSuccess })
 
           <form onSubmit={handleSubmit} className={styles.modalForm}>
 
-            {/* Feedback Alert */}
-            {isEdit && post.status === "CHANGES_REQUESTED" && post.clientNote && (
+            {/* Feedback Alert — Changes Requested */}
+            {isEdit && post.status === "CHANGES_REQUESTED" && (post.clientNote || post.feedbackImages?.length > 0) && (
               <div className={styles.feedbackAlert}>
                 <div className={styles.feedbackAlertHead}>
                   <FiMessageSquare size={14} /><strong>Client Requested Changes:</strong>
                 </div>
-                <p>{post.clientNote}</p>
+                {post.clientNote && <p>{post.clientNote}</p>}
+                {post.feedbackImages?.length > 0 && (
+                  <FeedbackImagesViewer images={post.feedbackImages} />
+                )}
               </div>
             )}
-            {/* Feedback Alert — Changes Requested */}
-            {/* {isEdit && post.status === "CHANGES_REQUESTED" && post.clientNote && (
-              <div className={styles.feedbackAlert}>
-                <div className={styles.feedbackAlertHead}>
-                  <FiMessageSquare size={14} /><strong>Client Requested Changes:</strong>
-                </div>
-                <p>{post.clientNote}</p>
-              </div>
-            )} */}
 
             {/* Approval Note — Approved with feedback */}
-            {isEdit && post.status === "APPROVED" && post.clientNote && (
+            {isEdit && post.status === "APPROVED" && (post.clientNote || post.feedbackImages?.length > 0) && (
               <div className={styles.approvalNote}>
                 <div className={styles.approvalNoteHead}>
                   <span>💬</span>
                   <strong>Client Note on Approval</strong>
                 </div>
-                <p>{post.clientNote}</p>
+                {post.clientNote && <p>{post.clientNote}</p>}
+                {post.feedbackImages?.length > 0 && (
+                  <FeedbackImagesViewer images={post.feedbackImages} />
+                )}
               </div>
             )}
+
             <div className={styles.inputGroup}>
               <label>Content Title</label>
               <input name="title" defaultValue={post?.title || ""} placeholder="e.g. Product Launch Carousel" required className={styles.inputField} />

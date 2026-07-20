@@ -10,7 +10,7 @@ import ContentSection from "./sections/ContentSecions";
 import PlanSection from "./sections/PlanSection";
 import ProfileSection from "./sections/ProfileSection";
 import { initPostHog, posthog } from "@/lib/posthog";
-
+import FeatureAnnouncement from "./FeatureAnnouncement";
 const NAV_ITEMS = [
   { id: "overview", label: "Overview" },
   { id: "content",  label: "Content" },
@@ -23,6 +23,8 @@ export default function PortalDashboard({ client, isAdminOrTeam, holidays }) {
   const [activeNav, setActiveNav]         = useState("overview");
   const [reviewPost, setReviewPost]       = useState(null);
   const [feedback, setFeedback]           = useState("");
+  const [feedbackImages, setFeedbackImages] = useState([]);   // 👈 NEW
+  const [uploadingImages, setUploadingImages] = useState(false); 
   const [submitting, setSubmitting]       = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -129,9 +131,12 @@ useEffect(() => {
 
   const handleReview = async (action) => {
     if (action === "REJECT" && !feedback.trim()) { alert("Please provide feedback before requesting changes."); return; }
+    if (uploadingImages) { alert("Please wait for the images to finish uploading."); return; }
     setSubmitting(true);
-    try { await submitPostReview(reviewPost.id, client.id, action, feedback); }
-    finally { setReviewPost(null); setFeedback(""); setSubmitting(false); }
+    try { await submitPostReview(reviewPost.id, client.id, action, feedback, feedbackImages); }
+    finally {
+      setReviewPost(null); setFeedback(""); setFeedbackImages([]); setUploadingImages(false); setSubmitting(false);
+    }
   };
 
   const scrollTo = useCallback((id) => {
@@ -149,7 +154,7 @@ useEffect(() => {
 
   return (
     <div className={styles.portal}>
-
+ <FeatureAnnouncement />
       {/* ── NAV ── */}
       <nav className={styles.topNav}>
         <div className={styles.navInner}>
@@ -289,7 +294,11 @@ useEffect(() => {
           post={reviewPost}
           feedback={feedback}
           onFeedbackChange={setFeedback}
-          onClose={() => { setReviewPost(null); setFeedback(""); }}
+          onImagesChange={setFeedbackImages}
+          onUploadingChange={setUploadingImages}
+          uploadingImages={uploadingImages}
+          clientId={client.id}
+          onClose={() => { setReviewPost(null); setFeedback(""); setFeedbackImages([]); setUploadingImages(false); }}
           onApprove={() => handleReview("APPROVE")}
           onReject={() => handleReview("REJECT")}
           submitting={submitting}

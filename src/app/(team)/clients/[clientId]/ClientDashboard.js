@@ -9,7 +9,7 @@ import {
   FiExternalLink, FiChevronLeft, FiChevronRight,
   FiActivity, FiLayers, FiArrowRight, FiZap,
   FiTrendingUp, FiGrid, FiEdit2, FiX, FiPlus, FiTrash2,
-  FiBell, FiList
+  FiBell, FiList, FiImage
 } from "react-icons/fi";
 import { updateClientCore, addClientQuota, deleteClientQuota, notifyClient, deleteDeliverable } from "./actions";
 import DeliverableModal from "./DeliverableModal";
@@ -341,14 +341,21 @@ export default function ClientDashboard({
                               transition: "opacity 200ms",
                             }}
                           >
-                            <td className={styles.cellTitle}>
+                           <td className={styles.cellTitle}>
                               <div className={styles.cellTitleInner}>
                                 <span className={styles.cellTitleText}>{post.title}</span>
-                                {post.mediaUrls?.length > 1 && (
+                                {(post.mediaUrls?.length > 1 || post.feedbackImages?.length > 0) && (
                                   <div className={styles.cellTitleBadges}>
-                                    <span className={styles.carouselBadge}>
-                                      <FiGrid size={8} /> {post.mediaUrls.length}
-                                    </span>
+                                    {post.mediaUrls?.length > 1 && (
+                                      <span className={styles.carouselBadge}>
+                                        <FiGrid size={8} /> {post.mediaUrls.length}
+                                      </span>
+                                    )}
+                                    {post.feedbackImages?.length > 0 && (
+                                      <span className={styles.feedbackBadge} title={`${post.feedbackImages.length} feedback image(s) attached`}>
+                                        <FiImage size={8} /> {post.feedbackImages.length}
+                                      </span>
+                                    )}
                                   </div>
                                 )}
                               </div>

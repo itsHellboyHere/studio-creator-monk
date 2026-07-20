@@ -22,14 +22,15 @@ export async function updateClientProfile(clientId, formData) {
 }
 
 
-export async function submitPostReview(postId, clientId, action, feedback) {
+export async function submitPostReview(postId, clientId, action, feedback, feedbackImages = []) {
   const newStatus = action === "APPROVE" ? "APPROVED" : "CHANGES_REQUESTED";
-  
+
   const post = await db.post.update({
     where: { id: postId },
     data: {
       status:     newStatus,
       clientNote: feedback || null,
+      feedbackImages: Array.isArray(feedbackImages) ? feedbackImages : [], // 👈 NEW
       approvedAt: newStatus === "APPROVED" ? new Date() : null,
     },
     include: { client: { select: { name: true } } },

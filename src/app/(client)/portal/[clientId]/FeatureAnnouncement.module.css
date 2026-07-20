@@ -1,0 +1,77 @@
+/* ── Feature Announcement Modal ── */
+.faOverlay {
+  position: fixed; inset: 0; z-index: 10001;
+  background: rgba(15,12,9,0.55);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.25rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.faModal {
+  position: relative;
+  background: var(--white);
+  border-radius: 18px;
+  max-width: 420px; width: 100%;
+  padding: 2rem 1.75rem 1.75rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  text-align: center;
+  animation: fadeUp 0.28s cubic-bezier(0.32,0.72,0,1) both;
+  border: 1px solid var(--border);
+}
+
+.faClose {
+  position: absolute; top: 0.875rem; right: 0.875rem;
+  width: 30px; height: 30px; border-radius: 8px;
+  background: var(--cream); border: 1px solid var(--border);
+  color: var(--text2); display: grid; place-items: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.faClose:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+
+.faIcon {
+  width: 56px; height: 56px; border-radius: 16px;
+  background: linear-gradient(135deg, #fff4ee, #fff7ed);
+  border: 1px solid #fed7aa;
+  color: var(--orange);
+  display: grid; place-items: center;
+  margin: 0 auto 1rem;
+}
+
+.faBadge {
+  display: inline-block;
+  font-size: 0.62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--orange); background: #fff4ee;
+  border: 1px solid #fed7aa;
+  padding: 0.25rem 0.7rem; border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.faTitle {
+  font-family: 'Fraunces', serif;
+  font-size: 1.375rem; font-weight: 400;
+  color: var(--text1); line-height: 1.25;
+  margin-bottom: 0.6rem;
+}
+
+.faBody {
+  font-size: 0.85rem; line-height: 1.6;
+  color: var(--text2);
+  margin-bottom: 1.5rem;
+}
+
+.faCta {
+  width: 100%;
+  background: var(--orange); color: white; border: none;
+  padding: 0.75rem; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 700;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.faCta:hover { background: #b8440f; transform: translateY(-1px); }
+
+@media (max-width: 480px) {
+  .faModal { padding: 1.75rem 1.25rem 1.25rem; border-radius: 16px; }
+  .faTitle { font-size: 1.2rem; }
+}
